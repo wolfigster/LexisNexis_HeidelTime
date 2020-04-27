@@ -5,6 +5,21 @@ plugins {
 group 'de.wolfig'
 version '1.0'
 
+task createJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'lexinesi_heideltime',
+                'Implementation-Version': version,
+                'Main-Class': 'de.wolfig.Main'
+    }
+    baseName = project.name + '-dependencies'
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    with jar
+}
+
 repositories {
     mavenCentral()
 }
