@@ -11,17 +11,18 @@ import java.util.UUID;
 
 
 public class BulkWrapper {
+    private static final String AUTHORIZATIONENDPOINT = "https://auth-api.lexisnexis.com/oauth/v2/token";
     private static final String REQUEST_HEADER = "X-LN-Request";
     private static String CONTENT_TYPE = "application/x-www-form-urlencoded";
 
-    public static String getAccessToken(String authorizationEndPoint,String clientId, String clientSecret){
+    public static String getAccessToken(String clientId, String clientSecret){
         String accessToken = null;
         Client client = Client.create();
         client.addFilter(new LoggingFilter());
 
         String scopeRequested = "http://oauth.lexisnexis.com/all";
         try {
-            WebResource webResource = client.resource(authorizationEndPoint + "/oauth/v2/token");
+            WebResource webResource = client.resource(AUTHORIZATIONENDPOINT);
             String requestbody = "grant_type=client_credentials&scope=" +
                     URLEncoder.encode(scopeRequested, "UTF-8") + "&format=xml";
             String basicAuthId = "Basic " + new String(Base64.encode(clientId + ":" + clientSecret));
