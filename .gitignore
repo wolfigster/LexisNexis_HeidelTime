@@ -1,0 +1,13 @@
+# Gradle files
+.gradle/
+build/
+
+# IntelliJ IDEA project files
+.idea/
+out/
+
+# Directories
+test/
+META-INF/
+
+# Files
