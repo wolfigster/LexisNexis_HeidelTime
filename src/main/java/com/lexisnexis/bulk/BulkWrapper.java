@@ -18,7 +18,7 @@ public class BulkWrapper {
     public static String getAccessToken(String clientId, String clientSecret){
         String accessToken = null;
         Client client = Client.create();
-        client.addFilter(new LoggingFilter());
+        //client.addFilter(new LoggingFilter());
 
         String scopeRequested = "http://oauth.lexisnexis.com/all";
         try {
@@ -38,6 +38,9 @@ public class BulkWrapper {
             if(200 == response.getStatus()){
                 accessToken = response.getEntity(String.class);
                 //System.out.println(accessToken);
+            } else {
+                System.out.println("INCORRECT CLIENTSECRETS - PLEASE CORRECT YOUR config.xml");
+                System.exit(1);
             }
 
         } catch (Exception e) {
