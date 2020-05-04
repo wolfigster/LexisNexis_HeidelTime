@@ -1,4 +1,4 @@
-package de.wolfig;
+package de.wolfig.files;
 
 import com.lexisnexis.bulk.BulkWrapper;
 import com.lexisnexis.bulk.Util;
@@ -49,6 +49,8 @@ public class Configuration {
             accessExpired = Long.parseLong(properties.getProperty("access.expired"));
 
             if(isAccessTokenExpired()) updateAccessToken();
+
+            accessToken = properties.getProperty("access.token");
 
         } catch (IOException e) {
             e.printStackTrace();
