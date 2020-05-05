@@ -11,3 +11,6 @@ test/
 META-INF/
 
 # Files
+config.xml
+list.txt
+response.csv
