@@ -23,8 +23,12 @@ public class Worker {
     public void initializeList() {
 
         for(String listItem : reader.readFileLineByLine()) {
-            RObject RObject = requester.requestList(listItem);
-            writeToCSV(RObject);
+            RObject rObject = requester.requestList(listItem);
+            writeToCSV(rObject);
+            for(int i = 10; i < rObject.getOdataCount(); i+=10) {
+                RObject innerRObject = requester.requestList(listItem.replace("/v1/News?$", "/v1/News?$skip=" + i + "&$"));
+                writeToCSV(innerRObject);
+            }
         }
     }
 
