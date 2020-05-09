@@ -1,3 +1,5 @@
+![Java CI with Gradle](https://github.com/wolfigster/LexisNexis_HeidelTime/workflows/Java%20CI%20with%20Gradle/badge.svg?branch=master)
+
 # LexisNexis_HeidelTime
 Java Application for grabbing &amp; tagging briefs
 ### config.xml example
@@ -11,3 +13,16 @@ Java Application for grabbing &amp; tagging briefs
 <entry key="access.expired">1588609920215</entry>
 </properties>
 ```
+### Input: list.txt example
+```
+https://services-api.lexisnexis.com/v1/...
+https://services-api.lexisnexis.com/v1/...
+```
+
+### Output: response.csv example
+|URN|TITLE           |DATE                |WORDLENGTH|DOCUMENT                                                   |
+|---|----------------|--------------------|----------|-----------------------------------------------------------|
+|urn:contentItem:AAAA-BBBB-CCCC-1234-00000-00|Document 1 Title|2020-05-01T00:00:00Z|4321      |Documents(DocumentId='AAAA-BBBB-CCCC-1234-00000-00')/$value|
+|urn:contentItem:DDDD-EEEE-FFFF-1234-00000-00|Document 2 Title|2020-05-03T00:00:00Z|7654      |Documents(DocumentId='DDDD-EEEE-FFFF-1234-00000-00')/$value|
+|urn:contentItem:UUUU-VVVV-WWWW-9876-00000-00|Document 3 Title|2020-05-05T00:00:00Z|3456      |Documents(DocumentId='UUUU-VVVV-WWWW-9876-00000-00')/$value|
+|urn:contentItem:XXXX-YYYY-ZZZZ-9876-00000-00|Document 4 Title|2020-05-02T00:00:00Z|6789      |Documents(DocumentId='XXXX-YYYY-ZZZZ-9876-00000-00')/$value|
