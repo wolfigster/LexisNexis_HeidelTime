@@ -26,7 +26,7 @@ public class Requester {
         return RObject;
     }
 
-    private String request(String url) {
+    public String request(String url) {
         HttpResponse<String> response = Unirest.get(url)
                 .header("Accept", "application/json;odata.metadata=minimal")
                 .header("Authorization", "Bearer " + accessToken)
