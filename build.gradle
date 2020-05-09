@@ -7,11 +7,19 @@ version '1.0'
 
 task createJar(type: Jar) {
     manifest {
-        attributes 'Implementation-Title': 'lexinesi_heideltime',
+        attributes 'Implementation-Title': 'lexisnexis_heideltime',
                 'Implementation-Version': version,
                 'Main-Class': 'de.wolfig.Main'
     }
-    baseName = project.name + '-dependencies'
+    def getGitHash = { ->
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+    baseName = project.name + '-' + getGitHash()
     from {
         configurations.compile.collect {
             it.isDirectory() ? it : zipTree(it)
@@ -33,3 +41,4 @@ dependencies {
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
