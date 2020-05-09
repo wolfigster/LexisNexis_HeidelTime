@@ -9,6 +9,7 @@ public class Main {
     public static void main(String[] args) {
         init();
         worker.initializeList();
+        worker.stop();
     }
 
     public static void init() {

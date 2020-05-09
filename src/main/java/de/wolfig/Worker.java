@@ -50,4 +50,8 @@ public class Worker {
             writer.writeToFile(responseString);
         }
     }
+
+    public void stop() {
+        writer.closeWriter();
+    }
 }
