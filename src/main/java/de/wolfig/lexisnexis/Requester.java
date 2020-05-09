@@ -2,7 +2,7 @@ package de.wolfig.lexisnexis;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.wolfig.response.RObject;
+import de.wolfig.response.list.DocumentList;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 
@@ -14,16 +14,16 @@ public class Requester {
         this.accessToken = accessToken;
     }
 
-    public RObject requestList(String url) {
+    public DocumentList requestList(String url) {
         String abc = request(url);
         ObjectMapper objectMapper = new ObjectMapper();
-        RObject RObject = null;
+        DocumentList documentList = null;
         try {
-            RObject = objectMapper.readValue(abc, RObject.class);
+            documentList = objectMapper.readValue(abc, DocumentList.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        return RObject;
+        return documentList;
     }
 
     public String request(String url) {

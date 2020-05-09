@@ -1,7 +1,7 @@
 package de.wolfig.files;
 
-import de.wolfig.response.RObject;
-import de.wolfig.response.Value;
+import de.wolfig.response.list.DocumentList;
+import de.wolfig.response.list.Value;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -86,8 +86,8 @@ public class Writer {
         }
     }
 
-    public void writeRObjectToCSV(RObject rObject) {
-        for(Value value : rObject.getValue()) {
+    public void writeRObjectToCSV(DocumentList documentList) {
+        for(Value value : documentList.getValue()) {
 
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(value.getResultId()).append(CSV_SEPARATOR);
