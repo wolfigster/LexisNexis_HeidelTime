@@ -1,6 +1,6 @@
 package de.wolfig;
 
-import de.wolfig.response.RObject;
+import de.wolfig.response.list.DocumentList;
 import de.wolfig.files.Configuration;
 import de.wolfig.files.Reader;
 import de.wolfig.files.Writer;
@@ -24,12 +24,12 @@ public class Worker {
 
     public void initializeList() {
         for(String listItem : reader.readFileLineByLine(listFilePath)) {
-            RObject rObject = requester.requestList(listItem);
+            DocumentList documentList = requester.requestList(listItem);
             writer.changeWriterFile(responseFilePath);
-            writer.writeRObjectToCSV(rObject);
-            for(int i = 10; i < rObject.getOdataCount(); i+=10) {
-                RObject innerRObject = requester.requestList(listItem.replace("/v1/News?$", "/v1/News?$skip=" + i + "&$"));
-                writer.writeRObjectToCSV(innerRObject);
+            writer.writeRObjectToCSV(documentList);
+            for(int i = 10; i < documentList.getOdataCount(); i+=10) {
+                DocumentList innerDocumentList = requester.requestList(listItem.replace("/v1/News?$", "/v1/News?$skip=" + i + "&$"));
+                writer.writeRObjectToCSV(innerDocumentList);
             }
         }
         requestAllDocuments();

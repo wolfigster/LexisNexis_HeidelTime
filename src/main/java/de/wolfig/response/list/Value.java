@@ -1,4 +1,4 @@
-package de.wolfig.response;
+package de.wolfig.response.list;
 
 import java.util.HashMap;
 import java.util.List;

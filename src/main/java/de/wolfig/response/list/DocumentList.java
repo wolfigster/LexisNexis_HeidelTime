@@ -1,4 +1,4 @@
-package de.wolfig.response;
+package de.wolfig.response.list;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "value",
         "@odata.nextLink"
 })
-public class RObject {
+public class DocumentList {
 
     @JsonProperty("@odata.context")
     private String odataContext;
@@ -34,7 +34,7 @@ public class RObject {
      * No args constructor for use in serialization
      *
      */
-    public RObject() {
+    public DocumentList() {
     }
 
     /**
@@ -44,7 +44,7 @@ public class RObject {
      * @param odataNextLink
      * @param value
      */
-    public RObject(String odataContext, Integer odataCount, List<Value> value, String odataNextLink) {
+    public DocumentList(String odataContext, Integer odataCount, List<Value> value, String odataNextLink) {
         super();
         this.odataContext = odataContext;
         this.odataCount = odataCount;
@@ -62,7 +62,7 @@ public class RObject {
         this.odataContext = odataContext;
     }
 
-    public RObject withOdataContext(String odataContext) {
+    public DocumentList withOdataContext(String odataContext) {
         this.odataContext = odataContext;
         return this;
     }
@@ -77,7 +77,7 @@ public class RObject {
         this.odataCount = odataCount;
     }
 
-    public RObject withOdataCount(Integer odataCount) {
+    public DocumentList withOdataCount(Integer odataCount) {
         this.odataCount = odataCount;
         return this;
     }
@@ -92,7 +92,7 @@ public class RObject {
         this.value = value;
     }
 
-    public RObject withValue(List<Value> value) {
+    public DocumentList withValue(List<Value> value) {
         this.value = value;
         return this;
     }
@@ -107,7 +107,7 @@ public class RObject {
         this.odataNextLink = odataNextLink;
     }
 
-    public RObject withOdataNextLink(String odataNextLink) {
+    public DocumentList withOdataNextLink(String odataNextLink) {
         this.odataNextLink = odataNextLink;
         return this;
     }
@@ -122,7 +122,7 @@ public class RObject {
         this.additionalProperties.put(name, value);
     }
 
-    public RObject withAdditionalProperty(String name, Object value) {
+    public DocumentList withAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
         return this;
     }
