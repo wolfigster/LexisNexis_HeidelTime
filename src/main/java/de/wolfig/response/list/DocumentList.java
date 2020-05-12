@@ -126,4 +126,12 @@ public class DocumentList {
         this.additionalProperties.put(name, value);
         return this;
     }
+
+    public String toCSV() {
+        StringBuilder content = new StringBuilder();
+        for(Value value : this.value) {
+            content.append(value.toCSV());
+        }
+        return content.toString();
+    }
 }
