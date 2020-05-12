@@ -627,4 +627,8 @@ public class Value {
         return this;
     }
 
+    public String toCSV() {
+        return this.resultId + ";" + this.title + ";" + this.date + ";" + this.wordLength + ";" + this.documentContentOdataMediaReadLink + "\n";
+    }
+
 }
