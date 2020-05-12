@@ -1,8 +1,5 @@
 package de.wolfig.files;
 
-import de.wolfig.response.list.DocumentList;
-import de.wolfig.response.list.Value;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,8 +7,6 @@ import java.io.IOException;
 
 public class Writer {
 
-    private final String CSV_SEPARATOR = ";";
-    private final String CSV_LINEBREAK = "\n";
     private BufferedWriter bufferedWriter;
     private File file;
     private boolean append;
@@ -94,20 +89,6 @@ public class Writer {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    public void writeRObjectToCSV(DocumentList documentList) {
-        for(Value value : documentList.getValue()) {
-
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(value.getResultId()).append(CSV_SEPARATOR);
-            stringBuilder.append(value.getTitle()).append(CSV_SEPARATOR);
-            stringBuilder.append(value.getDate()).append(CSV_SEPARATOR);
-            stringBuilder.append(value.getWordLength()).append(CSV_SEPARATOR);
-            stringBuilder.append(value.getDocumentContentOdataMediaReadLink()).append(CSV_LINEBREAK);
-
-            writeToFile(stringBuilder.toString());
         }
     }
 
