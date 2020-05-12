@@ -1,8 +1,5 @@
 package de.wolfig.files;
 
-import de.wolfig.response.list.DocumentList;
-import de.wolfig.response.list.Value;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,55 +7,64 @@ import java.io.IOException;
 
 public class Writer {
 
-    private final String CSV_SEPARATOR = ";";
-    private final String CSV_LINEBREAK = "\n";
     private BufferedWriter bufferedWriter;
-    private String filePath;
+    private File file;
     private boolean append;
 
-    public Writer(String filePath, boolean append) {
-        this.filePath = filePath;
+    public Writer(File file, boolean append) {
+        this.file = file;
         checkForFile();
         this.append = append;
         try {
-            this.bufferedWriter = new BufferedWriter(new FileWriter(filePath, append));
+            this.bufferedWriter = new BufferedWriter(new FileWriter(file, append));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Writer(String filePath, boolean append) {
+        this(new File(filePath), append);
+    }
+
+    public void changeWriterSettings(File file, boolean append) {
+        this.file = file;
+        checkForFile();
+        this.append = append;
+        try {
+            this.bufferedWriter = new BufferedWriter(new FileWriter(file, append));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void changeWriterSettings(String filePath, boolean append) {
-        this.filePath = filePath;
+        this.changeWriterSettings(new File(filePath), append);
+    }
+
+    public void changeWriterFile(File file) {
+        this.file = file;
         checkForFile();
-        this.append = append;
         try {
-            this.bufferedWriter = new BufferedWriter(new FileWriter(filePath, append));
+            this.bufferedWriter = new BufferedWriter(new FileWriter(file, append));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void changeWriterFile(String filePath) {
-        this.filePath = filePath;
-        checkForFile();
-        try {
-            this.bufferedWriter = new BufferedWriter(new FileWriter(filePath, append));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.changeWriterFile(new File(filePath));
     }
 
     public void changeWriterAppend(boolean append) {
         this.append = append;
         try {
-            this.bufferedWriter = new BufferedWriter(new FileWriter(filePath, append));
+            this.bufferedWriter = new BufferedWriter(new FileWriter(file, append));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void checkForFile() {
-        File file = new File(filePath);
         if(file.exists()) {
             try {
                 file.createNewFile();
@@ -83,20 +89,6 @@ public class Writer {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    public void writeRObjectToCSV(DocumentList documentList) {
-        for(Value value : documentList.getValue()) {
-
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(value.getResultId()).append(CSV_SEPARATOR);
-            stringBuilder.append(value.getTitle()).append(CSV_SEPARATOR);
-            stringBuilder.append(value.getDate()).append(CSV_SEPARATOR);
-            stringBuilder.append(value.getWordLength()).append(CSV_SEPARATOR);
-            stringBuilder.append(value.getDocumentContentOdataMediaReadLink()).append(CSV_LINEBREAK);
-
-            writeToFile(stringBuilder.toString());
         }
     }
 

@@ -6,11 +6,11 @@ import java.util.ArrayList;
 
 public class Reader {
 
-    public ArrayList<String> readFileLineByLine(String filePath) {
+    public ArrayList<String> readFileLineByLine(File file) {
         ArrayList<String> arrayList = new ArrayList<>();
         BufferedReader bufferedReader;
         try {
-            bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8));
+            bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
             String line = bufferedReader.readLine();
             while (line != null) {
                 arrayList.add(line);
