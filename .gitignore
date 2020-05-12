@@ -10,7 +10,9 @@ out/
 test/
 META-INF/
 
+files/*
+
 # Files
 config.xml
 list.txt
-response.csv
+overview.csv
