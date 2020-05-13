@@ -1,5 +1,7 @@
 package de.wolfig;
 
+import de.wolfig.response.document.BodyText;
+import de.wolfig.response.document.Entry;
 import de.wolfig.response.list.DocumentList;
 import de.wolfig.files.Configuration;
 import de.wolfig.files.Reader;
@@ -7,9 +9,18 @@ import de.wolfig.files.Writer;
 import de.wolfig.lexisnexis.Requester;
 import de.wolfig.response.list.Value;
 
-import java.io.File;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Worker {
 
@@ -95,5 +106,45 @@ public class Worker {
             content.append(value.toCSV());
         }
         return content.toString();
+    }
+
+    public void convertXMLtoTXT() {
+        Unmarshaller unmarshaller = null;
+        List<String> files = null;
+        try (Stream<Path> walker = Files.walk(Paths.get(xmlDirectory.getPath()))) {
+            JAXBContext jaxbContext = JAXBContext.newInstance("de.wolfig.response.document");
+            unmarshaller = jaxbContext.createUnmarshaller();
+            files = walker.filter(Files::isRegularFile).map(x -> x.toString()).collect(Collectors.toList());
+
+            for(String file : files) {
+                writer.changeWriterSettings(file.replaceAll("xml", "txt"), true);
+                try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(file))) {
+                    Entry entry = (Entry) unmarshaller.unmarshal(inputStreamReader);
+                    writer.writeToFile(entry.toTXTString() + "\n");
+
+                    // publication > 2008
+
+                    for (BodyText.P p : entry.getContent().getArticleDoc().getBody().getBodyContent().getBodyText().getP()) {
+                        StringBuilder content = new StringBuilder();
+                        for(int i = 0; i < p.getContent().size(); i++) {
+                            try {
+                                JAXBElement<BodyText.P.Person> person = (JAXBElement<BodyText.P.Person>) p.getContent().get(i);
+                                content.append(person.getValue().getNameText());
+                            } catch (Exception e) {
+                                content.append(p.getContent().get(i));
+                            }
+                        }
+                        String cont = content.toString();
+                        if(cont.contains(":")) writer.writeToFile("\n ");
+                        if(cont.equalsIgnoreCase("Presentation") || cont.equalsIgnoreCase("Questions and Answers")
+                                || cont.equalsIgnoreCase("Corporate Participants") || cont.equalsIgnoreCase("Conference Call Participants")
+                                || cont.startsWith("THE INFORMATION CONTAINED IN EVENT TRANSCRIPTS IS A TEXTUAL")) writer.writeToFile("\n\n ");
+                        writer.writeToFile(content.toString());
+                    }
+                }
+            }
+        } catch (IOException | JAXBException e) {
+            e.printStackTrace();
+        }
     }
 }
