@@ -11,6 +11,7 @@ public class Main {
 
         executeCommand(args);
         worker.initializeList();
+        worker.convertXMLtoTXT();
         worker.stop();
 
         System.exit(0);
