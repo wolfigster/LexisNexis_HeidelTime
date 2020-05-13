@@ -371,4 +371,8 @@ public class Entry {
 
     }
 
+    public String toTXTString() {
+        return this.title + " - " + (this.content.articleDoc.metadata.wordCount == null ? "0" : this.content.articleDoc.metadata.wordCount.number) + " - " + this.published.toString() + " - (ID: " + this.id + ")";
+    }
+
 }
