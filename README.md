@@ -2,6 +2,26 @@
 
 # LexisNexis_HeidelTime
 Java Application for grabbing &amp; tagging briefs
+
+## Directory structure
+```
+rootdirectory
+├── files
+│   ├── csv
+│   │   ├── *.csv
+│   │   └── ...
+│   ├── txt
+│   │   ├── *.txt
+│   │   └── ...
+│   └── xml
+│       ├── *.xml
+│       └── ...
+├── config.xml
+├── LexisNexis_HeidelTime-e273d44-1.0.jar
+├── list.txt
+└── overview.csv
+```
+
 ### config.xml example
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -13,13 +33,14 @@ Java Application for grabbing &amp; tagging briefs
 <entry key="access.expired">1588609920215</entry>
 </properties>
 ```
+
 ### Input: list.txt example
 ```
 https://services-api.lexisnexis.com/v1/...
 https://services-api.lexisnexis.com/v1/...
 ```
 
-### Output: response.csv example
+### Output: overview.csv example
 |URN|TITLE           |DATE                |WORDLENGTH|DOCUMENT                                                   |
 |---|----------------|--------------------|----------|-----------------------------------------------------------|
 |urn:contentItem:AAAA-BBBB-CCCC-1234-00000-00|Document 1 Title|2020-05-01T00:00:00Z|4321      |Documents(DocumentId='AAAA-BBBB-CCCC-1234-00000-00')/$value|
