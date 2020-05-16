@@ -2,6 +2,8 @@ package de.wolfig.files;
 
 import com.lexisnexis.bulk.BulkWrapper;
 import com.lexisnexis.bulk.Util;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,6 +13,7 @@ import java.util.Properties;
 
 public class Configuration {
 
+    private static final Logger LOGGER = LogManager.getLogger(Configuration.class);
     private static final File CONFIG = new File("./config.xml");
     private static Properties properties = null;
     private static String clientId = null;

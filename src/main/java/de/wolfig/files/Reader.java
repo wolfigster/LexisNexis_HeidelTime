@@ -1,10 +1,15 @@
 package de.wolfig.files;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class Reader {
+
+    private static final Logger LOGGER = LogManager.getLogger(Reader.class);
 
     public ArrayList<String> readFileLineByLine(File file) {
         ArrayList<String> arrayList = new ArrayList<>();

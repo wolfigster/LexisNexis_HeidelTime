@@ -8,6 +8,8 @@ import de.wolfig.files.Reader;
 import de.wolfig.files.Writer;
 import de.wolfig.lexisnexis.Requester;
 import de.wolfig.response.list.Value;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -24,6 +26,7 @@ import java.util.stream.Stream;
 
 public class Worker {
 
+    private static final Logger LOGGER = LogManager.getLogger(Worker.class);
     private final File overviewFile = new File("./overview.csv");
     private final File listFile = new File("./list.txt");
     private final File filesDirectory = new File("./files");
