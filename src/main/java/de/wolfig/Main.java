@@ -1,9 +1,11 @@
 package de.wolfig;
 
 import de.wolfig.files.Configuration;
+import org.apache.logging.log4j.*;
 
 public class Main {
 
+    private static final Logger LOGGER = LogManager.getLogger(Main.class);
     private static Worker worker = null;
 
     public static void main(String[] args) {

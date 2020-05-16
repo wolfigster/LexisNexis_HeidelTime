@@ -11,6 +11,7 @@ test/
 META-INF/
 
 files/*
+logs/*
 
 # Files
 config.xml
