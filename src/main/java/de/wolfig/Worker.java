@@ -55,27 +55,34 @@ public class Worker {
         writer.closeWriter();
     }
 
-    public void initializeList() {
-        if(overviewFile.exists()) {
-            overviewFile.delete();
+    public void initializeList(int startingLine) {
+        long lineCount = 0;
+        try {
+            lineCount = Files.lines(overviewFile.toPath()).count();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        writer.changeWriterFile(overviewFile);
-        writer.writeToFile("URN;Title;Date;WordLength;Document\n");
-        for(String listItem : reader.readFileLineByLine(listFile)) {
+        if(startingLine == 0) {
+            writer.changeWriterSettings(overviewFile, false);
+            writer.writeToFile("URN;Title;Date;WordLength;Document\n");
+            lineCount = 0;
+        }
+        writer.changeWriterSettings(overviewFile, true);
+        for(String listItem : reader.readFileLineByLineFromLine(listFile, startingLine)) {
             writer.writeToFile(getValuesAsStringFromListItem(listItem));
         }
-        requestAllDocuments();
+        requestAllDocuments((int) lineCount);
     }
 
-    private void requestAllDocuments() {
+    private void requestAllDocuments(int startingLine) {
         String[] response = null;
         String responseString = null;
-        for(String responseItem : reader.readFileLineByLine(overviewFile)) {
+        for(String responseItem : reader.readFileLineByLineFromLine(overviewFile, startingLine)) {
             response = responseItem.split(";");
             if(response[0].equals("URN")) continue;
             responseString = requester.request("https://services-api.lexisnexis.com/v1/" + response[4]);
             try {
-                TimeUnit.MILLISECONDS.sleep(1); // test for maximal responses
+                TimeUnit.MILLISECONDS.sleep(500); // -> max 120 requests per minute (limit: 125)
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -120,10 +127,11 @@ public class Worker {
             files = walker.filter(Files::isRegularFile).map(x -> x.toString()).collect(Collectors.toList());
 
             for(String file : files) {
-                writer.changeWriterSettings(file.replaceAll("xml", "txt"), true);
+                writer.changeWriterSettings(file.replaceAll("xml", "txt"), false);
                 try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(file))) {
                     Entry entry = (Entry) unmarshaller.unmarshal(inputStreamReader);
                     writer.writeToFile(entry.toTXTString() + "\n");
+                    writer.changeWriterSettings(file.replaceAll("xml", "txt"), true);
 
                     // publication > 2008
 
@@ -138,10 +146,10 @@ public class Worker {
                             }
                         }
                         String cont = content.toString();
-                        if(cont.contains(":")) writer.writeToFile("\n ");
+                        if(cont.contains(":")) writer.writeToFile("\n");
                         if(cont.equalsIgnoreCase("Presentation") || cont.equalsIgnoreCase("Questions and Answers")
                                 || cont.equalsIgnoreCase("Corporate Participants") || cont.equalsIgnoreCase("Conference Call Participants")
-                                || cont.startsWith("THE INFORMATION CONTAINED IN EVENT TRANSCRIPTS IS A TEXTUAL")) writer.writeToFile("\n\n ");
+                                || cont.startsWith("THE INFORMATION CONTAINED IN EVENT TRANSCRIPTS IS A TEXTUAL")) writer.writeToFile("\n\n");
                         writer.writeToFile(content.toString());
                     }
                 }

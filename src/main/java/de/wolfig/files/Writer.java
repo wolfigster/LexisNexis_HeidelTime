@@ -36,6 +36,7 @@ public class Writer {
         checkForFile();
         this.append = append;
         try {
+            this.bufferedWriter.close();
             this.bufferedWriter = new BufferedWriter(new FileWriter(file, append));
         } catch (IOException e) {
             e.printStackTrace();
@@ -50,6 +51,7 @@ public class Writer {
         this.file = file;
         checkForFile();
         try {
+            this.bufferedWriter.close();
             this.bufferedWriter = new BufferedWriter(new FileWriter(file, append));
         } catch (IOException e) {
             e.printStackTrace();
@@ -63,6 +65,7 @@ public class Writer {
     public void changeWriterAppend(boolean append) {
         this.append = append;
         try {
+            this.bufferedWriter.close();
             this.bufferedWriter = new BufferedWriter(new FileWriter(file, append));
         } catch (IOException e) {
             e.printStackTrace();
