@@ -12,7 +12,6 @@ public class Main {
         init();
 
         executeCommand(args);
-        worker.initializeList();
         worker.convertXMLtoTXT();
         worker.stop();
 
@@ -28,9 +27,18 @@ public class Main {
     public static void executeCommand(String[] args) {
         // method for later console input to manage the parameter
         if(args.length == 0) {
-            // do something
+            worker.initializeList(0);
         } else if(args.length == 1) {
             // do something
+        } else if(args.length == 2) {
+            if(args[0].equalsIgnoreCase("-d")) {
+
+            } else if(args[0].equalsIgnoreCase("-i")) {
+                worker.initializeList(Integer.parseInt(args[1]));
+                System.exit(0);
+            }
+        } else if(args.length == 3) {
+
         }
     }
 }
