@@ -36,6 +36,12 @@ public class Requester {
                 .header("Host", "services-api.lexisnexis.com")
                 .asString();
 
+        if (String.valueOf(response.getStatus()).startsWith("2")) {
+            LOGGER.info("Status " + response.getStatus() + ": " + url);
+        } else {
+            LOGGER.warn("Status " + response.getStatus() + ": " + url);
+        }
+
         return response.getBody();
     }
 }
