@@ -32,6 +32,7 @@ public class Worker {
     private final File filesDirectory = new File("./files");
     private final File xmlDirectory = new File(filesDirectory.getPath() + "/xml");
     private final File txtDirectory = new File(filesDirectory.getPath() + "/txt");
+    private final File htDirectory = new File(filesDirectory.getPath() + "/ht");
     private final File csvDirectory = new File(filesDirectory.getPath() + "/csv");
     private Requester requester = null;
     private Reader reader = null;
@@ -48,6 +49,7 @@ public class Worker {
         if(!filesDirectory.exists()) filesDirectory.mkdir();
         if(!xmlDirectory.exists()) xmlDirectory.mkdir();
         if(!txtDirectory.exists()) txtDirectory.mkdir();
+        if(!htDirectory.exists()) htDirectory.mkdir();
         if(!csvDirectory.exists()) csvDirectory.mkdir();
     }
 
@@ -58,7 +60,7 @@ public class Worker {
     public void initializeList(int startingLine) {
         long lineCount = 0;
         try {
-            lineCount = Files.lines(overviewFile.toPath()).count();
+            lineCount = Files.lines(overviewFile.toPath()).count(); // maybe +1
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -155,6 +157,52 @@ public class Worker {
                 }
             }
         } catch (IOException | JAXBException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateHeidelTimeConfig() {
+        File heidelTimeConfig = new File("./heideltime-standalone/config.props");
+        File treeTagger = new File(".");
+        String treeTaggerPath = treeTagger.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\");
+        StringBuilder stringBuilder = new StringBuilder();
+
+        ArrayList<String> lines = reader.readFileLineByLine(heidelTimeConfig);
+        writer.changeWriterSettings(heidelTimeConfig, false);
+        ListIterator<String> iterator = lines.listIterator();
+        while (iterator.hasNext()) {
+            String next = iterator.next();
+            if (next.startsWith("treeTaggerHome")) {
+                stringBuilder.append("treeTaggerHome = " + treeTaggerPath.substring(0, treeTaggerPath.length()-1) + "TreeTagger\n");
+            } else {
+                stringBuilder.append(next + "\n");
+            }
+        }
+        writer.writeToFile(stringBuilder.toString());
+    }
+
+    public void executeHeidelTime() {
+        List<String> files = null;
+        File heidelTimeJar = new File("./heideltime-standalone/de.unihd.dbs.heideltime.standalone.jar");
+        File heidelTimeConfig = new File("./heideltime-standalone/config.props");
+        try (Stream<Path> walker = Files.walk(Paths.get(new File("./files/txt").getPath()))) {
+            files = walker.filter(Files::isRegularFile).map(x -> x.toAbsolutePath().toString()).collect(Collectors.toList());
+            for(String file : files) {
+                writer.changeWriterSettings(file.replaceAll("txt", "xml").replaceFirst("xml", "ht"), false);
+                String[] command = new String[] {"java", "-jar", heidelTimeJar.getAbsolutePath(), file, "-c", heidelTimeConfig.getAbsolutePath()};
+                ProcessBuilder builder = new ProcessBuilder(command);
+                try {
+                    Process process = builder.start();
+                    int c = 0;
+                    InputStream inputStream = process.getInputStream();
+                    while ((c = inputStream.read()) != -1) {
+                        writer.writeToFile(String.valueOf((char)c));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
