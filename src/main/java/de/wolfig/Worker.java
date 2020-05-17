@@ -180,4 +180,30 @@ public class Worker {
         }
         writer.writeToFile(stringBuilder.toString());
     }
+
+    public void executeHeidelTime() {
+        List<String> files = null;
+        File heidelTimeJar = new File("./heideltime-standalone/de.unihd.dbs.heideltime.standalone.jar");
+        File heidelTimeConfig = new File("./heideltime-standalone/config.props");
+        try (Stream<Path> walker = Files.walk(Paths.get(new File("./files/txt").getPath()))) {
+            files = walker.filter(Files::isRegularFile).map(x -> x.toAbsolutePath().toString()).collect(Collectors.toList());
+            for(String file : files) {
+                writer.changeWriterSettings(file.replaceAll("txt", "xml").replaceFirst("xml", "ht"), false);
+                String[] command = new String[] {"java", "-jar", heidelTimeJar.getAbsolutePath(), file, "-c", heidelTimeConfig.getAbsolutePath()};
+                ProcessBuilder builder = new ProcessBuilder(command);
+                try {
+                    Process process = builder.start();
+                    int c = 0;
+                    InputStream inputStream = process.getInputStream();
+                    while ((c = inputStream.read()) != -1) {
+                        writer.writeToFile(String.valueOf((char)c));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -29,6 +29,7 @@ public class Main {
         } else if(args.length == 1) {
             if(args[0].equalsIgnoreCase("-ht")) {
                 worker.updateHeidelTimeConfig();
+                worker.executeHeidelTime();
             } else if(args[0].equalsIgnoreCase("-convert")) {
                 worker.convertXMLtoTXT();
             }
