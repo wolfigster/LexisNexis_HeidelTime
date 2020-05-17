@@ -16,6 +16,23 @@ rootdirectory
 │   └── xml
 │       ├── *.xml
 │       └── ...
+├── heideltime-standalone
+│   ├── config.props
+│   ├── de.unihd.dbs.heideltime.standalone.jar
+│   └── Manual.pdf
+└── TreeTagger
+│   ├── bin
+│   │   ├── *.bat
+│   │   ├── tree-tagger.exe
+│   │   └── ...
+│   ├── cmd
+│   │   ├── tree-tagger-*
+│   │   └── ...
+│   ├── lib
+│   │   ├── *-abbreviations
+│   │   └── ...
+│   ├── INSTALL.txt
+│   └── README.txt
 ├── config.xml
 ├── LexisNexis_HeidelTime-e273d44-1.0.jar
 ├── list.txt
