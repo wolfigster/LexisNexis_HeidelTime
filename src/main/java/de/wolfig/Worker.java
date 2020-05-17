@@ -32,6 +32,7 @@ public class Worker {
     private final File filesDirectory = new File("./files");
     private final File xmlDirectory = new File(filesDirectory.getPath() + "/xml");
     private final File txtDirectory = new File(filesDirectory.getPath() + "/txt");
+    private final File htDirectory = new File(filesDirectory.getPath() + "/ht");
     private final File csvDirectory = new File(filesDirectory.getPath() + "/csv");
     private Requester requester = null;
     private Reader reader = null;
@@ -48,6 +49,7 @@ public class Worker {
         if(!filesDirectory.exists()) filesDirectory.mkdir();
         if(!xmlDirectory.exists()) xmlDirectory.mkdir();
         if(!txtDirectory.exists()) txtDirectory.mkdir();
+        if(!htDirectory.exists()) htDirectory.mkdir();
         if(!csvDirectory.exists()) csvDirectory.mkdir();
     }
 
@@ -58,7 +60,7 @@ public class Worker {
     public void initializeList(int startingLine) {
         long lineCount = 0;
         try {
-            lineCount = Files.lines(overviewFile.toPath()).count();
+            lineCount = Files.lines(overviewFile.toPath()).count(); // maybe +1
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -157,5 +159,25 @@ public class Worker {
         } catch (IOException | JAXBException e) {
             e.printStackTrace();
         }
+    }
+
+    public void updateHeidelTimeConfig() {
+        File heidelTimeConfig = new File("./heideltime-standalone/config.props");
+        File treeTagger = new File(".");
+        String treeTaggerPath = treeTagger.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\");
+        StringBuilder stringBuilder = new StringBuilder();
+
+        ArrayList<String> lines = reader.readFileLineByLine(heidelTimeConfig);
+        writer.changeWriterSettings(heidelTimeConfig, false);
+        ListIterator<String> iterator = lines.listIterator();
+        while (iterator.hasNext()) {
+            String next = iterator.next();
+            if (next.startsWith("treeTaggerHome")) {
+                stringBuilder.append("treeTaggerHome = " + treeTaggerPath.substring(0, treeTaggerPath.length()-1) + "TreeTagger\n");
+            } else {
+                stringBuilder.append(next + "\n");
+            }
+        }
+        writer.writeToFile(stringBuilder.toString());
     }
 }

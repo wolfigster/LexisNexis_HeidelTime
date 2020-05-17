@@ -12,8 +12,6 @@ public class Main {
         init();
 
         executeCommand(args);
-        worker.convertXMLtoTXT();
-        worker.stop();
 
         System.exit(0);
     }
@@ -29,7 +27,11 @@ public class Main {
         if(args.length == 0) {
             worker.initializeList(0);
         } else if(args.length == 1) {
-            // do something
+            if(args[0].equalsIgnoreCase("-ht")) {
+                worker.updateHeidelTimeConfig();
+            } else if(args[0].equalsIgnoreCase("-convert")) {
+                worker.convertXMLtoTXT();
+            }
         } else if(args.length == 2) {
             if(args[0].equalsIgnoreCase("-d")) {
 
@@ -40,5 +42,6 @@ public class Main {
         } else if(args.length == 3) {
 
         }
+        worker.stop();
     }
 }
