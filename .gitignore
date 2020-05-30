@@ -17,3 +17,4 @@ logs/*
 config.xml
 list.txt
 overview.csv
+heideltime-standalone/config.props

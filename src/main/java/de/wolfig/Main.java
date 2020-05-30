@@ -32,6 +32,8 @@ public class Main {
                 worker.executeHeidelTime();
             } else if(args[0].equalsIgnoreCase("-convert")) {
                 worker.convertXMLtoTXT();
+            } else if(args[0].equalsIgnoreCase("-csv")) {
+                worker.createOutputCSV();
             }
         } else if(args.length == 2) {
             if(args[0].equalsIgnoreCase("-d")) {
