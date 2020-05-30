@@ -148,7 +148,8 @@ public class Worker {
                             }
                         }
                         String cont = content.toString();
-                        if(cont.contains(":")) writer.writeToFile("\n");
+                        String inFrontOfColon = cont.split(":")[0];
+                        if(inFrontOfColon.equals(inFrontOfColon.toUpperCase())) writer.writeToFile("\n");
                         if(cont.equalsIgnoreCase("Presentation") || cont.equalsIgnoreCase("Questions and Answers")
                                 || cont.equalsIgnoreCase("Corporate Participants") || cont.equalsIgnoreCase("Conference Call Participants")
                                 || cont.startsWith("THE INFORMATION CONTAINED IN EVENT TRANSCRIPTS IS A TEXTUAL")) writer.writeToFile("\n\n");
