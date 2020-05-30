@@ -22,6 +22,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -124,6 +126,7 @@ public class Worker {
     public void convertXMLtoTXT() {
         Unmarshaller unmarshaller = null;
         List<String> files = null;
+        HashMap<String, Integer> speakerCount = new HashMap<>();
         try (Stream<Path> walker = Files.walk(Paths.get(xmlDirectory.getPath()))) {
             JAXBContext jaxbContext = JAXBContext.newInstance("de.wolfig.response.document");
             unmarshaller = jaxbContext.createUnmarshaller();
@@ -186,30 +189,91 @@ public class Worker {
     public void executeHeidelTime() {
         List<String> files = null;
         String publishedDate = null;
+        StringBuilder test = new StringBuilder();
         File heidelTimeJar = new File("./heideltime-standalone/de.unihd.dbs.heideltime.standalone.jar");
         File heidelTimeConfig = new File("./heideltime-standalone/config.props");
         try (Stream<Path> walker = Files.walk(Paths.get(new File("./files/txt").getPath()))) {
             files = walker.filter(Files::isRegularFile).map(x -> x.toAbsolutePath().toString()).collect(Collectors.toList());
             for(String file : files) {
+                boolean id = false;
                 try {
                     publishedDate = Files.readAllLines(Paths.get(file), StandardCharsets.UTF_8).get(2).substring(7,17);
                 } catch (IOException e) {
                     publishedDate = Files.readAllLines(Paths.get(file), StandardCharsets.ISO_8859_1).get(2).substring(7,17);
                 }
-                System.out.println(publishedDate);
                 writer.changeWriterSettings(file.replaceAll("txt", "xml").replaceFirst("xml", "ht"), false);
-                String[] command = new String[] {"java", "-jar", heidelTimeJar.getAbsolutePath(), file, "-dct", publishedDate , "-c", heidelTimeConfig.getAbsolutePath()};
+                String[] command = new String[] {"java", "-jar", heidelTimeJar.getAbsolutePath(), file, "-dct", publishedDate, "-t", "NEWS", "-c", heidelTimeConfig.getAbsolutePath()};
                 ProcessBuilder builder = new ProcessBuilder(command);
                 try {
                     Process process = builder.start();
                     int c = 0;
                     InputStream inputStream = process.getInputStream();
                     while ((c = inputStream.read()) != -1) {
-                        writer.writeToFile(String.valueOf((char)c));
+                        test.append((char)c);
+                        if(c == 10) {
+                            if(id) {
+                                String inFrontOfColon = test.toString().split(":")[0];
+                                if(inFrontOfColon.equals(inFrontOfColon.toUpperCase()) && test.toString().contains(":")) inFrontOfColon = test.toString().replaceFirst(inFrontOfColon, "<PERSON>" + inFrontOfColon + "</PERSON>");
+                                writer.writeToFile(inFrontOfColon);
+                            } else {
+                                if(test.toString().startsWith("$")) writer.writeToFile(test.toString().replaceAll("<.*?>", ""));
+                                else writer.writeToFile(test.toString());
+                            }
+                            if(test.toString().startsWith("$ID")) id = true;
+                            test = new StringBuilder();
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void createOutputCSV() {
+        List<String> files = null;
+        Pattern timex3 = Pattern.compile("<TIMEX3.*?</TIMEX3>");
+        Pattern timex3type = Pattern.compile("type=\".*?\"");
+        Pattern timex3value = Pattern.compile("value=\".*?\"");
+        Pattern timex3message = Pattern.compile("\">.*?<");
+        try (Stream<Path> walker = Files.walk(Paths.get(new File("./files/ht").getPath()))) {
+            files = walker.filter(Files::isRegularFile).map(x -> x.toAbsolutePath().toString()).collect(Collectors.toList());
+            for(String file : files) {
+                String publication = null;
+                int i = 0;
+                int lineNumber = 1;
+                writer.changeWriterSettings(file.replace("xml", "csv").replaceFirst("ht", "csv"), false);
+                writer.writeToFile("Number;Person;Jobtitle;Type;Date;TIMEX3;Publication;Line;Distance\n");
+                writer.changeWriterAppend(true);
+                for(String line : reader.readFileLineByLine(new File(file))) {
+                    if(line.startsWith("$Date")) publication = line.substring(7,17);
+                    if(line.startsWith("<PERSON>")) {
+                        Matcher matcher = timex3.matcher(line);
+                        String person = line.substring(line.indexOf("<PERSON>")+8,line.indexOf("</PERSON>"));
+                        String jobTitle = "";
+                        while(matcher.find()) {
+                            String type = null;
+                            Matcher typeMatcher = timex3type.matcher(matcher.group());
+                            while(typeMatcher.find()) type = typeMatcher.group();
+                            type = type.substring(6, type.length()-1);
+                            String date = null;
+                            Matcher dateMatcher = timex3value.matcher(matcher.group());
+                            while(dateMatcher.find()) date = dateMatcher.group();
+                            date = date.substring(7, date.length()-1);
+                            String timex3msg = null;
+                            Matcher timex3msgMatcher = timex3message.matcher(matcher.group());
+                            while(timex3msgMatcher.find()) timex3msg = timex3msgMatcher.group();
+                            timex3msg = timex3msg.substring(2, timex3msg.length()-1);
+                            String distance = "0";
+                            writer.writeToFile(i + ";" + person + ";" + jobTitle + ";" + type + ";" + date + ";" + timex3msg + ";" + publication + ";" + lineNumber + ";" + distance + "\n");
+                            i++;
+                        }
+                    }
+                    lineNumber++;
+                }
+
             }
         } catch (IOException e) {
             e.printStackTrace();
