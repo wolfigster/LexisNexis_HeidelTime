@@ -16,6 +16,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -184,13 +185,20 @@ public class Worker {
 
     public void executeHeidelTime() {
         List<String> files = null;
+        String publishedDate = null;
         File heidelTimeJar = new File("./heideltime-standalone/de.unihd.dbs.heideltime.standalone.jar");
         File heidelTimeConfig = new File("./heideltime-standalone/config.props");
         try (Stream<Path> walker = Files.walk(Paths.get(new File("./files/txt").getPath()))) {
             files = walker.filter(Files::isRegularFile).map(x -> x.toAbsolutePath().toString()).collect(Collectors.toList());
             for(String file : files) {
+                try {
+                    publishedDate = Files.readAllLines(Paths.get(file), StandardCharsets.UTF_8).get(2).substring(7,17);
+                } catch (IOException e) {
+                    publishedDate = Files.readAllLines(Paths.get(file), StandardCharsets.ISO_8859_1).get(2).substring(7,17);
+                }
+                System.out.println(publishedDate);
                 writer.changeWriterSettings(file.replaceAll("txt", "xml").replaceFirst("xml", "ht"), false);
-                String[] command = new String[] {"java", "-jar", heidelTimeJar.getAbsolutePath(), file, "-c", heidelTimeConfig.getAbsolutePath()};
+                String[] command = new String[] {"java", "-jar", heidelTimeJar.getAbsolutePath(), file, "-dct", publishedDate , "-c", heidelTimeConfig.getAbsolutePath()};
                 ProcessBuilder builder = new ProcessBuilder(command);
                 try {
                     Process process = builder.start();
