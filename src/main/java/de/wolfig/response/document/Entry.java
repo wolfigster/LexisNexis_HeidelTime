@@ -372,7 +372,7 @@ public class Entry {
     }
 
     public String toTXTString() {
-        return this.title + " - " + (this.content.articleDoc.metadata.wordCount == null ? "0" : this.content.articleDoc.metadata.wordCount.number) + " - " + this.published.toString() + " - (ID: " + this.id + ")";
+        return "$Title: " + this.title + "\n$WordLength: " + (this.content.articleDoc.metadata.wordCount == null ? "0" : this.content.articleDoc.metadata.wordCount.number) + "\n$Date: " + this.published.toString() + "\n$ID: " + this.id + "\n";
     }
 
 }

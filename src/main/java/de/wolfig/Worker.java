@@ -132,7 +132,7 @@ public class Worker {
                 writer.changeWriterSettings(file.replaceAll("xml", "txt"), false);
                 try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(file))) {
                     Entry entry = (Entry) unmarshaller.unmarshal(inputStreamReader);
-                    writer.writeToFile(entry.toTXTString() + "\n");
+                    writer.writeToFile(entry.toTXTString());
                     writer.changeWriterSettings(file.replaceAll("xml", "txt"), true);
 
                     // publication > 2008
