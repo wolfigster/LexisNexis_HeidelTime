@@ -2,6 +2,7 @@ package de.wolfig;
 
 import de.wolfig.files.Configuration;
 import de.wolfig.fx.Window;
+import javafx.application.Application;
 import org.apache.logging.log4j.*;
 
 public class Main {
@@ -26,8 +27,8 @@ public class Main {
     public static void executeCommand(String[] args) {
         // method for later console input to manage the parameter
         if(args.length == 0) {
+            Application.launch(Window.class, args);
             worker.initializeList(0);
-            Window.launch(args);
         } else if(args.length == 1) {
             if(args[0].equalsIgnoreCase("-ht")) {
                 worker.updateHeidelTimeConfig();
