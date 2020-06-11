@@ -32,10 +32,10 @@ public class DataStore {
         try (Stream<Path> walker = Files.walk(Paths.get(new File("./files").getPath()))) {
             List<File> fileList = walker.filter(Files::isRegularFile).map(x -> new File(String.valueOf(x))).collect(Collectors.toList());
             for (File file : fileList) {
-                if(file.getPath().startsWith(".\\files\\xml")) xmlFiles.add(new FileTreeObject(file));
-                if(file.getPath().startsWith(".\\files\\txt")) txtFiles.add(new FileTreeObject(file));
-                if(file.getPath().startsWith(".\\files\\ht")) htFiles.add(new FileTreeObject(file));
-                if(file.getPath().startsWith(".\\files\\csv")) csvFiles.add(new FileTreeObject(file));
+                if(file.getPath().startsWith(".\\files\\xml\\")) xmlFiles.add(new FileTreeObject(file));
+                if(file.getPath().startsWith(".\\files\\txt\\")) txtFiles.add(new FileTreeObject(file));
+                if(file.getPath().startsWith(".\\files\\ht\\")) htFiles.add(new FileTreeObject(file));
+                if(file.getPath().startsWith(".\\files\\csv\\")) csvFiles.add(new FileTreeObject(file));
                 files.put(file, file.getPath());
             }
         } catch (IOException e) {
@@ -49,6 +49,6 @@ public class DataStore {
             number++;
         }
 
-        for(String line : reader.readFileLineByLineFromLine(new File("overview.csv"), 2)) overviewList.add(new CSVTreeObject(line));
+        for(String line : reader.readFileLineByLineFromLine(new File("./overview.csv"), 2)) overviewList.add(new CSVTreeObject(line));
     }
 }
