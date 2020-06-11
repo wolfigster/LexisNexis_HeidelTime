@@ -6,6 +6,7 @@ import de.wolfig.fx.treeobjects.CSVTreeObject;
 import de.wolfig.fx.treeobjects.FileTreeObject;
 import de.wolfig.fx.treeobjects.LinkTreeObject;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -16,12 +17,12 @@ import javafx.stage.Stage;
 
 public class Window extends Application {
 
-    private JFXTreeTableView csvTreeObjectJFXTreeTableView;
-    private JFXTreeTableView linkTreeObjectJFXTreeTableView;
-    private JFXTreeTableView xmlFileTreeObjectJFXTreeTableView;
-    private JFXTreeTableView txtFileTreeObjectJFXTreeTableView;
-    private JFXTreeTableView htFileTreeObjectJFXTreeTableView;
-    private JFXTreeTableView csvFileTreeObjectJFXTreeTableView;
+    private JFXTreeTableView<CSVTreeObject> csvTreeObjectJFXTreeTableView;
+    private JFXTreeTableView<LinkTreeObject> linkTreeObjectJFXTreeTableView;
+    private JFXTreeTableView<FileTreeObject> xmlFileTreeObjectJFXTreeTableView;
+    private JFXTreeTableView<FileTreeObject> txtFileTreeObjectJFXTreeTableView;
+    private JFXTreeTableView<FileTreeObject> htFileTreeObjectJFXTreeTableView;
+    private JFXTreeTableView<FileTreeObject> csvFileTreeObjectJFXTreeTableView;
 
     @Override
     public void start(Stage stage) {
@@ -33,29 +34,47 @@ public class Window extends Application {
         HBox menuBox = new HBox();
         menuBox.setPrefSize(1200, 50);
         menuBox.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0), CornerRadii.EMPTY, Insets.EMPTY)));
-        menuBox.getChildren().addAll();
+        menuBox.getChildren().addAll(); // add menu buttons
 
         // main
         JFXTabPane tabListPane = new JFXTabPane();
         Tab overviewTab = new Tab();
         overviewTab.setText("Overview");
-        overviewTab.setContent(csvTreeObjectJFXTreeTableView);
+        VBox overviewTabBox = new VBox();
+        JFXTextField overviewTextField = new JFXTextField();
+        overviewTextField.textProperty().addListener((o, oldVal, newVal) -> {
+            csvTreeObjectJFXTreeTableView.setPredicate(props -> {
+                final CSVTreeObject csvTreeObject = props.getValue();
+                return csvTreeObject.urn.get().contains(newVal)
+                        || csvTreeObject.title.get().contains(newVal)
+                        || csvTreeObject.date.get().contains(newVal);
+            });
+        });
+
+        Label overviewSizeLabel = new Label();
+        overviewSizeLabel.textProperty().bind(Bindings.createStringBinding(() -> String.valueOf(csvTreeObjectJFXTreeTableView.getCurrentItemsCount()), csvTreeObjectJFXTreeTableView.currentItemsCountProperty()));
+
+        overviewTabBox.getChildren().addAll(csvTreeObjectJFXTreeTableView, overviewTextField, overviewSizeLabel);
+        overviewTab.setContent(overviewTabBox);
+
         Tab listTab = new Tab();
         listTab.setText("List");
-        listTab.setContent(linkTreeObjectJFXTreeTableView);
-        Tab xmlTab = new Tab();
-        xmlTab.setText("files/xml");
-        xmlTab.setContent(xmlFileTreeObjectJFXTreeTableView);
-        Tab txtTab = new Tab();
-        txtTab.setText("files/txt");
-        txtTab.setContent(txtFileTreeObjectJFXTreeTableView);
-        Tab htTab = new Tab();
-        htTab.setText("files/ht");
-        htTab.setContent(htFileTreeObjectJFXTreeTableView);
-        Tab csvTab = new Tab();
-        csvTab.setText("files/csv");
-        csvTab.setContent(csvFileTreeObjectJFXTreeTableView);
-        tabListPane.getTabs().addAll(overviewTab, listTab, xmlTab, txtTab, htTab, csvTab);
+        VBox listTabBox = new VBox();
+        JFXTextField listTextField = new JFXTextField();
+        listTextField.textProperty().addListener((o, oldVal, newVal) -> {
+            linkTreeObjectJFXTreeTableView.setPredicate(props -> {
+                final LinkTreeObject linkTreeObject = props.getValue();
+                return linkTreeObject.name.get().contains(newVal);
+            });
+        });
+
+        Label listSizeLabel = new Label();
+        listSizeLabel.textProperty().bind(Bindings.createStringBinding(() -> String.valueOf(linkTreeObjectJFXTreeTableView.getCurrentItemsCount()), linkTreeObjectJFXTreeTableView.currentItemsCountProperty()));
+
+        listTabBox.getChildren().addAll(linkTreeObjectJFXTreeTableView, listTextField, listSizeLabel);
+        listTab.setContent(listTabBox);
+
+        tabListPane.getTabs().addAll(overviewTab, listTab, createFilesTab("xml", xmlFileTreeObjectJFXTreeTableView), createFilesTab("txt", txtFileTreeObjectJFXTreeTableView), createFilesTab("ht", htFileTreeObjectJFXTreeTableView), createFilesTab("files/csv", csvFileTreeObjectJFXTreeTableView));
 
         // main-list
         VBox listBox = new VBox();
@@ -205,6 +224,27 @@ public class Window extends Application {
         fileTreeObjectJFXTreeTableView.setShowRoot(false);
         fileTreeObjectJFXTreeTableView.getColumns().setAll(nameColumn, sizeColumn);
         return fileTreeObjectJFXTreeTableView;
+    }
+
+    private Tab createFilesTab(String title, JFXTreeTableView<FileTreeObject> jfxTreeTableView) {
+        Tab tab = new Tab();
+        tab.setText("files/" + title);
+        VBox vBox = new VBox();
+        JFXTextField jfxTextField = new JFXTextField();
+        jfxTextField.textProperty().addListener((o, oldVal, newVal) -> {
+            jfxTreeTableView.setPredicate(props -> {
+                final FileTreeObject fileTreeObject = props.getValue();
+                return fileTreeObject.file.getName().contains(newVal)
+                        || fileTreeObject.name.get().contains(newVal);
+            });
+        });
+
+        Label sizeLabel = new Label();
+        sizeLabel.textProperty().bind(Bindings.createStringBinding(() -> String.valueOf(jfxTreeTableView.getCurrentItemsCount()), jfxTreeTableView.currentItemsCountProperty()));
+
+        vBox.getChildren().addAll(jfxTreeTableView, jfxTextField, sizeLabel);
+        tab.setContent(vBox);
+        return tab;
     }
 
     public static void main(String... args) {
