@@ -32,11 +32,19 @@ public class Worker {
     private static final Logger LOGGER = LogManager.getLogger(Worker.class);
     private final File overviewFile = new File("./overview.csv");
     private final File listFile = new File("./list.txt");
+    private final File heidelTimeJarFile = new File("./heideltime-standalone/de.unihd.dbs.heideltime.standalone.jar");
+    private final File heidelTimeConfigFile = new File("./heideltime-standalone/config.props");
     private final File filesDirectory = new File("./files");
     private final File xmlDirectory = new File(filesDirectory.getPath() + "/xml");
     private final File txtDirectory = new File(filesDirectory.getPath() + "/txt");
     private final File htDirectory = new File(filesDirectory.getPath() + "/ht");
     private final File csvDirectory = new File(filesDirectory.getPath() + "/csv");
+
+    private final Pattern patternTimex3 = Pattern.compile("<TIMEX3.*?</TIMEX3>");
+    private final Pattern patternTimex3type = Pattern.compile("type=\".*?\"");
+    private final Pattern patternTimex3value = Pattern.compile("value=\".*?\"");
+    private final Pattern patternTimex3message = Pattern.compile("\">.*?<");
+
     private Requester requester = null;
     private Reader reader = null;
     private Writer writer = null;
@@ -59,6 +67,163 @@ public class Worker {
     public void stop() {
         writer.closeWriter();
     }
+
+    public void requestListItem(String url) {
+        ArrayList<String> documents = new ArrayList<>();
+        if(!overviewFile.exists()) {
+            writer.changeWriterSettings(overviewFile, true);
+            writer.writeToFile("URN;Title;Date;WordLength;Document\n");
+        } else {
+            for(String line : reader.readFileLineByLine(overviewFile)) documents.add(line.split(";")[1]);
+        }
+        writer.changeWriterSettings(overviewFile, true);
+
+        int i = 0;
+        int documentCount = 0;
+        HashMap<String, Value> valueHashMap = new HashMap<>();
+        do {
+            DocumentList documentList = requester.requestList(url.replace("/v1/News?$", "/v1/News?$skip=" + i + "&$"));
+
+            for(Value value : documentList.getValue()) {
+                if(valueHashMap.containsKey(value.getTitle())) {
+                    if(valueHashMap.get(value.getTitle()).getWordLength() < value.getWordLength()) valueHashMap.replace(value.getTitle(), value);
+                } else {
+                    if(!documents.contains(value.getTitle())) valueHashMap.put(value.getTitle(), value);
+                }
+            }
+
+            if(documentCount == 0) documentCount = documentList.getOdataCount();
+            i+=10;
+        } while (i < documentCount);
+
+        StringBuilder content = new StringBuilder();
+        for(Value value : valueHashMap.values()) content.append(value.toCSV());
+        writer.writeToFile(content.toString());
+
+    }
+
+    public void requestDocument(String title, String documentURL) {
+        writer.changeWriterSettings(xmlDirectory.getPath() + File.separator + title + ".xml", false);
+        writer.writeToFile(requester.request("https://services-api.lexisnexis.com/v1/" + documentURL));
+    }
+
+    public void convertXMLtoTXT(String filePath) {
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance("de.wolfig.response.document");
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
+            writer.changeWriterSettings(filePath.replace("xml", "txt"), false);
+            try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(filePath))) {
+                Entry entry = (Entry) unmarshaller.unmarshal(inputStreamReader);
+                writer.writeToFile(entry.toTXTString());
+                writer.changeWriterSettings(filePath.replace("xml", "txt"), true);
+
+                for (BodyText.P p : entry.getContent().getArticleDoc().getBody().getBodyContent().getBodyText().getP()) {
+                    StringBuilder content = new StringBuilder();
+                    for(int i = 0; i < p.getContent().size(); i++) {
+                        try {
+                            JAXBElement<BodyText.P.Person> person = (JAXBElement<BodyText.P.Person>) p.getContent().get(i);
+                            content.append(person.getValue().getNameText());
+                        } catch (Exception e) {
+                            content.append(p.getContent().get(i));
+                        }
+                    }
+                    String cont = content.toString();
+                    String inFrontOfColon = cont.split(":")[0];
+                    if(inFrontOfColon.equals(inFrontOfColon.toUpperCase())) writer.writeToFile("\n");
+                    if(cont.equalsIgnoreCase("Presentation") || cont.equalsIgnoreCase("Questions and Answers")
+                            || cont.equalsIgnoreCase("Corporate Participants") || cont.equalsIgnoreCase("Conference Call Participants")
+                            || cont.startsWith("THE INFORMATION CONTAINED IN EVENT TRANSCRIPTS IS A TEXTUAL")) writer.writeToFile("\n\n");
+                    writer.writeToFile(content.toString());
+                }
+            }
+        } catch (JAXBException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void executeHeidelTime(String txtFile) {
+        String publishedDate = null;
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean id = false;
+
+        writer.changeWriterSettings(txtFile.replaceAll("txt", "xml").replaceFirst("xml", "ht"), false);
+
+        try {
+            publishedDate = Files.readAllLines(Paths.get(txtFile), StandardCharsets.UTF_8).get(2).substring(7,17);
+        } catch (IOException e) {
+            try {
+                publishedDate = Files.readAllLines(Paths.get(txtFile), StandardCharsets.ISO_8859_1).get(2).substring(7,17);
+            } catch (IOException e2) {
+                e2.printStackTrace();
+            }
+        }
+
+        String[] command = new String[] {"java", "-jar", heidelTimeJarFile.getAbsolutePath(), txtFile, "-dct", publishedDate, "-t", "NEWS", "-c", heidelTimeConfigFile.getAbsolutePath()};
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        try {
+            Process process = processBuilder.start();
+            int c = 0;
+            InputStream inputStream = process.getInputStream();
+            while ((c = inputStream.read()) != -1) {
+                stringBuilder.append((char)c);
+                if(c == 10) {
+                    if(id) {
+                        String inFrontOfColon = stringBuilder.toString().split(":")[0];
+                        if(inFrontOfColon.equals(inFrontOfColon.toUpperCase()) && stringBuilder.toString().contains(":")) inFrontOfColon = stringBuilder.toString().replaceFirst(inFrontOfColon, "<PERSON>" + inFrontOfColon + "</PERSON>");
+                        writer.writeToFile(inFrontOfColon);
+                    } else {
+                        if(stringBuilder.toString().startsWith("$")) writer.writeToFile(stringBuilder.toString().replaceAll("<.*?>", ""));
+                        else writer.writeToFile(stringBuilder.toString());
+                    }
+                    if(stringBuilder.toString().startsWith("$ID")) id = true;
+                    stringBuilder = new StringBuilder();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void createCSV(String heidelTimeFile) {
+        String publication = "";
+        int i = 1;
+        int lineNumber = 1;
+        writer.changeWriterSettings(heidelTimeFile.replace("xml", "csv").replaceFirst("ht", "csv"), false);
+        writer.writeToFile("Number;Person;Jobtitle;Type;Date;TIMEX3;Publication;Line;Distance\n");
+        writer.changeWriterAppend(true);
+        for(String line : reader.readFileLineByLine(new File(heidelTimeFile))) {
+            if(line.startsWith("$Date")) publication = line.substring(7,17);
+            if(line.startsWith("<PERSON>")) {
+                Matcher matcher = patternTimex3.matcher(line);
+                String person = line.substring(line.indexOf("<PERSON>")+8,line.indexOf("</PERSON>"));
+                String jobTitle = "";
+                while(matcher.find()) {
+                    String type = "";
+                    matcher = patternTimex3type.matcher(matcher.group());
+                    while(matcher.find()) type = matcher.group();
+                    type = type.substring(6, type.length()-1);
+                    String date = "";
+                    matcher = patternTimex3value.matcher(matcher.group());
+                    while(matcher.find()) date = matcher.group();
+                    date = date.substring(7, date.length()-1);
+                    String timex3msg = "";
+                    matcher = patternTimex3message.matcher(matcher.group());
+                    while(matcher.find()) timex3msg = matcher.group();
+                    timex3msg = timex3msg.substring(2, timex3msg.length()-1);
+                    String distance = "0";
+                    // distance calculation required
+                    writer.writeToFile(i + ";" + person + ";" + jobTitle + ";" + type + ";" + date + ";" + timex3msg + ";" + publication + ";" + lineNumber + ";" + distance + "\n");
+                    i++;
+                }
+            }
+            lineNumber++;
+        }
+    }
+
+
+
+
 
     public void initializeList(int startingLine) {
         long lineCount = 0;
