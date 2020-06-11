@@ -2,6 +2,8 @@ package de.wolfig.fx;
 
 import com.jfoenix.controls.*;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+import de.wolfig.Main;
+import de.wolfig.Worker;
 import de.wolfig.fx.treeobjects.CSVTreeObject;
 import de.wolfig.fx.treeobjects.FileTreeObject;
 import de.wolfig.fx.treeobjects.LinkTreeObject;
@@ -15,6 +17,8 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.io.File;
+
 public class Window extends Application {
 
     private JFXTreeTableView<CSVTreeObject> csvTreeObjectJFXTreeTableView;
@@ -24,10 +28,13 @@ public class Window extends Application {
     private JFXTreeTableView<FileTreeObject> htFileTreeObjectJFXTreeTableView;
     private JFXTreeTableView<FileTreeObject> csvFileTreeObjectJFXTreeTableView;
 
+    private Worker worker;
+
     @Override
     public void start(Stage stage) {
         DataStore.loadDataStore();
         loadTreeTableViews();
+        worker = new Worker();
 
 
         // menu
@@ -40,8 +47,11 @@ public class Window extends Application {
         JFXTabPane tabListPane = new JFXTabPane();
         Tab overviewTab = new Tab();
         overviewTab.setText("Overview");
-        VBox overviewTabBox = new VBox();
+        VBox overviewTabVBox = new VBox();
+        HBox overviewTabHBox = new HBox();
         JFXTextField overviewTextField = new JFXTextField();
+        overviewTextField.setPrefWidth(550);
+        overviewTextField.setMinWidth(550);
         overviewTextField.textProperty().addListener((o, oldVal, newVal) -> {
             csvTreeObjectJFXTreeTableView.setPredicate(props -> {
                 final CSVTreeObject csvTreeObject = props.getValue();
@@ -50,35 +60,41 @@ public class Window extends Application {
                         || csvTreeObject.date.get().contains(newVal);
             });
         });
-
         Label overviewSizeLabel = new Label();
+        overviewSizeLabel.setPrefWidth(50);
+        overviewSizeLabel.setMinWidth(50);
         overviewSizeLabel.textProperty().bind(Bindings.createStringBinding(() -> String.valueOf(csvTreeObjectJFXTreeTableView.getCurrentItemsCount()), csvTreeObjectJFXTreeTableView.currentItemsCountProperty()));
+        overviewTabHBox.getChildren().addAll(overviewTextField, overviewSizeLabel);
+        overviewTabVBox.getChildren().addAll(csvTreeObjectJFXTreeTableView, overviewTabHBox);
+        overviewTab.setContent(overviewTabVBox);
 
-        overviewTabBox.getChildren().addAll(csvTreeObjectJFXTreeTableView, overviewTextField, overviewSizeLabel);
-        overviewTab.setContent(overviewTabBox);
 
         Tab listTab = new Tab();
         listTab.setText("List");
-        VBox listTabBox = new VBox();
+        VBox listTabVBox = new VBox();
+        HBox listTabHBox = new HBox();
         JFXTextField listTextField = new JFXTextField();
+        listTextField.setPrefWidth(550);
+        listTextField.setMinWidth(550);
         listTextField.textProperty().addListener((o, oldVal, newVal) -> {
             linkTreeObjectJFXTreeTableView.setPredicate(props -> {
                 final LinkTreeObject linkTreeObject = props.getValue();
                 return linkTreeObject.name.get().contains(newVal);
             });
         });
-
         Label listSizeLabel = new Label();
+        listSizeLabel.setPrefWidth(50);
+        listSizeLabel.setMinWidth(50);
         listSizeLabel.textProperty().bind(Bindings.createStringBinding(() -> String.valueOf(linkTreeObjectJFXTreeTableView.getCurrentItemsCount()), linkTreeObjectJFXTreeTableView.currentItemsCountProperty()));
+        listTabHBox.getChildren().addAll(listTextField, listSizeLabel);
+        listTabVBox.getChildren().addAll(linkTreeObjectJFXTreeTableView, listTabHBox);
+        listTab.setContent(listTabVBox);
 
-        listTabBox.getChildren().addAll(linkTreeObjectJFXTreeTableView, listTextField, listSizeLabel);
-        listTab.setContent(listTabBox);
-
-        tabListPane.getTabs().addAll(overviewTab, listTab, createFilesTab("xml", xmlFileTreeObjectJFXTreeTableView), createFilesTab("txt", txtFileTreeObjectJFXTreeTableView), createFilesTab("ht", htFileTreeObjectJFXTreeTableView), createFilesTab("files/csv", csvFileTreeObjectJFXTreeTableView));
+        tabListPane.getTabs().addAll(overviewTab, listTab, createFilesTab("xml", xmlFileTreeObjectJFXTreeTableView), createFilesTab("txt", txtFileTreeObjectJFXTreeTableView), createFilesTab("ht", htFileTreeObjectJFXTreeTableView), createFilesTab("csv", csvFileTreeObjectJFXTreeTableView));
 
         // main-list
         VBox listBox = new VBox();
-        listBox.setPrefSize(600, 550);
+        listBox.setPrefSize(600, 600);
         listBox.setBackground(new Background(new BackgroundFill(Color.rgb(0, 255, 0), CornerRadii.EMPTY, Insets.EMPTY)));
         listBox.getChildren().addAll(tabListPane);
 
@@ -89,24 +105,24 @@ public class Window extends Application {
         infoBox.getChildren().addAll();
 
         VBox fileBox = new VBox();
-        fileBox.setPrefSize(600, 500);
+        fileBox.setPrefSize(600, 550);
         fileBox.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 0), CornerRadii.EMPTY, Insets.EMPTY)));
         fileBox.getChildren().addAll();
 
         VBox detailBox = new VBox();
-        detailBox.setPrefSize(600, 550);
+        detailBox.setPrefSize(600, 600);
         detailBox.getChildren().addAll(infoBox, fileBox);
 
         // main-main
         HBox mainBox = new HBox();
-        mainBox.setPrefSize(1200, 550);
+        mainBox.setPrefSize(1200, 600);
         mainBox.getChildren().addAll(listBox, detailBox);
 
         // scene
-        final Scene scene = new Scene(new StackPane(new FlowPane(menuBox, mainBox)), 1200, 600);
-        scene.getStylesheets().addAll(Window.class.getResource("/css/jfoenix-components.css").toExternalForm(),
-                Window.class.getResource("/css/jfoenix-design.css").toExternalForm(),
-                Window.class.getResource("/css/jfoenix-fonts.css").toExternalForm());
+        final Scene scene = new Scene(new StackPane(new FlowPane(mainBox)), 1200, 600);
+        scene.getStylesheets().addAll(Main.class.getResource("/css/jfoenix-components.css").toExternalForm(),
+                Main.class.getResource("/css/jfoenix-design.css").toExternalForm(),
+                Main.class.getResource("/css/jfoenix-fonts.css").toExternalForm());
         stage.setTitle("LexisNexis Heideltime");
         stage.setMinWidth(1200);
         stage.setMinHeight(600);
@@ -198,7 +214,7 @@ public class Window extends Application {
         }
     }
 
-    private JFXTreeTableView loadFileTreeObjectTableView(ObservableList<FileTreeObject> fileTreeObjects) {
+    private JFXTreeTableView<FileTreeObject> loadFileTreeObjectTableView(ObservableList<FileTreeObject> fileTreeObjects) {
         JFXTreeTableColumn<FileTreeObject, String> nameColumn = new JFXTreeTableColumn<>("Name");
         nameColumn.setPrefWidth(500);
         nameColumn.setCellValueFactory((TreeTableColumn.CellDataFeatures<FileTreeObject, String> param) -> {
@@ -230,7 +246,12 @@ public class Window extends Application {
         Tab tab = new Tab();
         tab.setText("files/" + title);
         VBox vBox = new VBox();
+        vBox.setSpacing(10);
+        HBox hBox = new HBox();
+
         JFXTextField jfxTextField = new JFXTextField();
+        jfxTextField.setPrefWidth(550);
+        jfxTextField.setMinWidth(550);
         jfxTextField.textProperty().addListener((o, oldVal, newVal) -> {
             jfxTreeTableView.setPredicate(props -> {
                 final FileTreeObject fileTreeObject = props.getValue();
@@ -240,9 +261,51 @@ public class Window extends Application {
         });
 
         Label sizeLabel = new Label();
+        sizeLabel.setPrefWidth(50);
+        sizeLabel.setMinWidth(50);
         sizeLabel.textProperty().bind(Bindings.createStringBinding(() -> String.valueOf(jfxTreeTableView.getCurrentItemsCount()), jfxTreeTableView.currentItemsCountProperty()));
 
-        vBox.getChildren().addAll(jfxTreeTableView, jfxTextField, sizeLabel);
+        JFXButton jfxButton = new JFXButton();
+        switch (title) {
+            case "xml":
+                jfxButton.setText("Convert XML to TXT");
+                jfxButton.setOnMouseClicked((click) -> {
+                    for(TreeItem<FileTreeObject> fileTreeObject : xmlFileTreeObjectJFXTreeTableView.getSelectionModel().getSelectedItems()) {
+                        worker.convertXMLtoTXT(fileTreeObject.getValue().file.getPath());
+                        DataStore.txtFiles.add(new FileTreeObject(new File(fileTreeObject.getValue().file.getPath().replaceAll("xml", "txt"))));
+                    }
+                });
+                break;
+            case "txt":
+                jfxButton.setText("Run Heideltime");
+                jfxButton.setOnMouseClicked((click) -> {
+                    for(TreeItem<FileTreeObject> fileTreeObject : txtFileTreeObjectJFXTreeTableView.getSelectionModel().getSelectedItems()) {
+                        worker.executeHeidelTime(fileTreeObject.getValue().file.getPath());
+                        DataStore.htFiles.add(new FileTreeObject(new File(fileTreeObject.getValue().file.getPath().replaceAll("txt", "xml").replaceFirst("xml", "ht"))));
+                    }
+                });
+                break;
+            case "ht":
+                jfxButton.setText("Create CSV file");
+                jfxButton.setOnMouseClicked((click) -> {
+                    for(TreeItem<FileTreeObject> fileTreeObject : htFileTreeObjectJFXTreeTableView.getSelectionModel().getSelectedItems()) {
+                        worker.createCSV(fileTreeObject.getValue().file.getPath());
+                        DataStore.csvFiles.add(new FileTreeObject(new File(fileTreeObject.getValue().file.getPath().replaceAll("ht", "csv").replaceFirst("xml", "csv"))));
+                    }
+                });
+                break;
+            case "csv":
+                jfxButton.setDisable(true);
+                jfxButton.setVisible(false);
+                break;
+            default:
+
+                break;
+        }
+        jfxButton.getStyleClass().add("button-raised");
+
+        hBox.getChildren().addAll(jfxTextField, sizeLabel);
+        vBox.getChildren().addAll(jfxTreeTableView, hBox, jfxButton);
         tab.setContent(vBox);
         return tab;
     }
