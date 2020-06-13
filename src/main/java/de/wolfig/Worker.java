@@ -30,33 +30,40 @@ import java.util.stream.Stream;
 public class Worker {
 
     private static final Logger LOGGER = LogManager.getLogger(Worker.class);
-    private final File overviewFile = new File("./overview.csv");
-    private final File listFile = new File("./list.txt");
-    private final File heidelTimeJarFile = new File("./heideltime-standalone/de.unihd.dbs.heideltime.standalone.jar");
-    private final File heidelTimeConfigFile = new File("./heideltime-standalone/config.props");
-    private final File filesDirectory = new File("./files");
-    private final File xmlDirectory = new File(filesDirectory.getPath() + "/xml");
-    private final File txtDirectory = new File(filesDirectory.getPath() + "/txt");
-    private final File htDirectory = new File(filesDirectory.getPath() + "/ht");
-    private final File csvDirectory = new File(filesDirectory.getPath() + "/csv");
+    private static final File overviewFile = new File("./overview.csv");
+    private static final File listFile = new File("./list.txt");
+    private static final File heidelTimeJarFile = new File("./heideltime-standalone/de.unihd.dbs.heideltime.standalone.jar");
+    private static final File heidelTimeConfigFile = new File("./heideltime-standalone/config.props");
+    private static final File filesDirectory = new File("./files");
+    private static final File xmlDirectory = new File(filesDirectory.getPath() + "/xml");
+    private static final File txtDirectory = new File(filesDirectory.getPath() + "/txt");
+    private static final File htDirectory = new File(filesDirectory.getPath() + "/ht");
+    private static final File csvDirectory = new File(filesDirectory.getPath() + "/csv");
 
-    private final Pattern patternTimex3 = Pattern.compile("<TIMEX3.*?</TIMEX3>");
-    private final Pattern patternTimex3type = Pattern.compile("type=\".*?\"");
-    private final Pattern patternTimex3value = Pattern.compile("value=\".*?\"");
-    private final Pattern patternTimex3message = Pattern.compile("\">.*?<");
+    private static final Pattern patternTimex3 = Pattern.compile("<TIMEX3.*?</TIMEX3>");
+    private static final Pattern patternTimex3type = Pattern.compile("type=\".*?\"");
+    private static final Pattern patternTimex3value = Pattern.compile("value=\".*?\"");
+    private static final Pattern patternTimex3message = Pattern.compile("\">.*?<");
 
-    private Requester requester = null;
-    private Reader reader = null;
-    private Writer writer = null;
+    private static Requester requester = null;
+    private static Reader reader = null;
+    private static Writer writer = null;
 
-    public Worker() {
+//    public Worker() {
+//        requester = new Requester(Configuration.getAccessToken());
+//        reader = new Reader();
+//        writer = new Writer(listFile, true);
+//        createNecessaryDirectories();
+//    }
+
+    public static void initialize() {
         requester = new Requester(Configuration.getAccessToken());
         reader = new Reader();
         writer = new Writer(listFile, true);
-        createDirectoriesIfNecessary();
+        createNecessaryDirectories();
     }
 
-    public void createDirectoriesIfNecessary() {
+    public static void createNecessaryDirectories() {
         if(!filesDirectory.exists()) filesDirectory.mkdir();
         if(!xmlDirectory.exists()) xmlDirectory.mkdir();
         if(!txtDirectory.exists()) txtDirectory.mkdir();
@@ -64,11 +71,11 @@ public class Worker {
         if(!csvDirectory.exists()) csvDirectory.mkdir();
     }
 
-    public void stop() {
+    public static void stop() {
         writer.closeWriter();
     }
 
-    public void requestListItem(String url) {
+    public static String requestListItem(String url) {
         ArrayList<String> documents = new ArrayList<>();
         if(!overviewFile.exists()) {
             writer.changeWriterSettings(overviewFile, true);
@@ -99,15 +106,17 @@ public class Worker {
         StringBuilder content = new StringBuilder();
         for(Value value : valueHashMap.values()) content.append(value.toCSV());
         writer.writeToFile(content.toString());
-
+        writer.closeWriter();
+        return content.toString();
     }
 
-    public void requestDocument(String title, String documentURL) {
+    public static void requestDocument(String title, String documentURL) {
         writer.changeWriterSettings(xmlDirectory.getPath() + File.separator + title + ".xml", false);
         writer.writeToFile(requester.request("https://services-api.lexisnexis.com/v1/" + documentURL));
+        writer.closeWriter();
     }
 
-    public void convertXMLtoTXT(String filePath) {
+    public static void convertXMLtoTXT(String filePath) {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance("de.wolfig.response.document");
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -140,9 +149,10 @@ public class Worker {
         } catch (JAXBException | IOException e) {
             e.printStackTrace();
         }
+        writer.closeWriter();
     }
 
-    public void executeHeidelTime(String txtFile) {
+    public static void executeHeidelTime(String txtFile) {
         String publishedDate = null;
         StringBuilder stringBuilder = new StringBuilder();
         boolean id = false;
@@ -183,9 +193,10 @@ public class Worker {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        writer.closeWriter();
     }
 
-    public void createCSV(String heidelTimeFile) {
+    public static void createCSV(String heidelTimeFile) {
         String publication = "";
         int i = 1;
         int lineNumber = 1;
@@ -200,16 +211,16 @@ public class Worker {
                 String jobTitle = "";
                 while(matcher.find()) {
                     String type = "";
-                    matcher = patternTimex3type.matcher(matcher.group());
-                    while(matcher.find()) type = matcher.group();
+                    Matcher matcher1 = patternTimex3type.matcher(matcher.group());
+                    while(matcher1.find()) type = matcher1.group();
                     type = type.substring(6, type.length()-1);
                     String date = "";
-                    matcher = patternTimex3value.matcher(matcher.group());
-                    while(matcher.find()) date = matcher.group();
+                    Matcher matcher2 = patternTimex3value.matcher(matcher.group());
+                    while(matcher2.find()) date = matcher2.group();
                     date = date.substring(7, date.length()-1);
                     String timex3msg = "";
-                    matcher = patternTimex3message.matcher(matcher.group());
-                    while(matcher.find()) timex3msg = matcher.group();
+                    Matcher matcher3 = patternTimex3message.matcher(matcher.group());
+                    while(matcher3.find()) timex3msg = matcher3.group();
                     timex3msg = timex3msg.substring(2, timex3msg.length()-1);
                     String distance = "0";
                     // distance calculation required
@@ -219,6 +230,7 @@ public class Worker {
             }
             lineNumber++;
         }
+        writer.closeWriter();
     }
 
 
