@@ -4,6 +4,9 @@ import com.jfoenix.controls.*;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import de.wolfig.Main;
 import de.wolfig.Worker;
+import de.wolfig.fx.components.DetailBox;
+import de.wolfig.fx.components.ListBox;
+import de.wolfig.fx.components.MenuBox;
 import de.wolfig.fx.treeobjects.CSVTreeObject;
 import de.wolfig.fx.treeobjects.FileTreeObject;
 import de.wolfig.fx.treeobjects.LinkTreeObject;
@@ -21,20 +24,17 @@ import java.io.File;
 
 public class Window extends Application {
 
-    private JFXTreeTableView<CSVTreeObject> csvTreeObjectJFXTreeTableView;
-    private JFXTreeTableView<LinkTreeObject> linkTreeObjectJFXTreeTableView;
-    private JFXTreeTableView<FileTreeObject> xmlFileTreeObjectJFXTreeTableView;
-    private JFXTreeTableView<FileTreeObject> txtFileTreeObjectJFXTreeTableView;
-    private JFXTreeTableView<FileTreeObject> htFileTreeObjectJFXTreeTableView;
-    private JFXTreeTableView<FileTreeObject> csvFileTreeObjectJFXTreeTableView;
-
-    private Worker worker;
+    public static JFXTreeTableView<CSVTreeObject> csvTreeObjectJFXTreeTableView;
+    public static JFXTreeTableView<LinkTreeObject> linkTreeObjectJFXTreeTableView;
+    public static JFXTreeTableView<FileTreeObject> xmlFileTreeObjectJFXTreeTableView;
+    public static JFXTreeTableView<FileTreeObject> txtFileTreeObjectJFXTreeTableView;
+    public static JFXTreeTableView<FileTreeObject> htFileTreeObjectJFXTreeTableView;
+    public static JFXTreeTableView<FileTreeObject> csvFileTreeObjectJFXTreeTableView;
 
     @Override
     public void start(Stage stage) {
         DataStore.loadDataStore();
         loadTreeTableViews();
-        worker = new Worker();
 
 
         // menu
@@ -94,9 +94,9 @@ public class Window extends Application {
 
         // main-list
         VBox listBox = new VBox();
-        listBox.setPrefSize(600, 600);
+        listBox.setPrefSize(600, 550);
         listBox.setBackground(new Background(new BackgroundFill(Color.rgb(0, 255, 0), CornerRadii.EMPTY, Insets.EMPTY)));
-        listBox.getChildren().addAll(tabListPane);
+        listBox.getChildren().addAll(new ListBox());
 
         // main-detail
         VBox infoBox = new VBox();
@@ -105,27 +105,29 @@ public class Window extends Application {
         infoBox.getChildren().addAll();
 
         VBox fileBox = new VBox();
-        fileBox.setPrefSize(600, 550);
+        fileBox.setPrefSize(600, 500);
         fileBox.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 0), CornerRadii.EMPTY, Insets.EMPTY)));
         fileBox.getChildren().addAll();
 
         VBox detailBox = new VBox();
-        detailBox.setPrefSize(600, 600);
+        detailBox.setPrefSize(600, 550);
         detailBox.getChildren().addAll(infoBox, fileBox);
 
         // main-main
         HBox mainBox = new HBox();
-        mainBox.setPrefSize(1200, 600);
-        mainBox.getChildren().addAll(listBox, detailBox);
+        mainBox.setPrefSize(1200, 550);
+        mainBox.getChildren().addAll(new ListBox(), new DetailBox());
 
         // scene
-        final Scene scene = new Scene(new StackPane(new FlowPane(mainBox)), 1200, 600);
+        final Scene scene = new Scene(new StackPane(new FlowPane(new MenuBox(), mainBox)), 1200, 600);
         scene.getStylesheets().addAll(Main.class.getResource("/css/jfoenix-components.css").toExternalForm(),
                 Main.class.getResource("/css/jfoenix-design.css").toExternalForm(),
                 Main.class.getResource("/css/jfoenix-fonts.css").toExternalForm());
         stage.setTitle("LexisNexis Heideltime");
-        stage.setMinWidth(1200);
-        stage.setMinHeight(600);
+        stage.setMinWidth(1220);
+        stage.setMaxWidth(1220);
+        stage.setMinHeight(640);
+        stage.setMaxHeight(640);
         stage.setScene(scene);
         stage.show();
     }
@@ -271,7 +273,7 @@ public class Window extends Application {
                 jfxButton.setText("Convert XML to TXT");
                 jfxButton.setOnMouseClicked((click) -> {
                     for(TreeItem<FileTreeObject> fileTreeObject : xmlFileTreeObjectJFXTreeTableView.getSelectionModel().getSelectedItems()) {
-                        worker.convertXMLtoTXT(fileTreeObject.getValue().file.getPath());
+                        Worker.convertXMLtoTXT(fileTreeObject.getValue().file.getPath());
                         DataStore.txtFiles.add(new FileTreeObject(new File(fileTreeObject.getValue().file.getPath().replaceAll("xml", "txt"))));
                     }
                 });
@@ -280,7 +282,7 @@ public class Window extends Application {
                 jfxButton.setText("Run Heideltime");
                 jfxButton.setOnMouseClicked((click) -> {
                     for(TreeItem<FileTreeObject> fileTreeObject : txtFileTreeObjectJFXTreeTableView.getSelectionModel().getSelectedItems()) {
-                        worker.executeHeidelTime(fileTreeObject.getValue().file.getPath());
+                        Worker.executeHeidelTime(fileTreeObject.getValue().file.getPath());
                         DataStore.htFiles.add(new FileTreeObject(new File(fileTreeObject.getValue().file.getPath().replaceAll("txt", "xml").replaceFirst("xml", "ht"))));
                     }
                 });
@@ -289,7 +291,7 @@ public class Window extends Application {
                 jfxButton.setText("Create CSV file");
                 jfxButton.setOnMouseClicked((click) -> {
                     for(TreeItem<FileTreeObject> fileTreeObject : htFileTreeObjectJFXTreeTableView.getSelectionModel().getSelectedItems()) {
-                        worker.createCSV(fileTreeObject.getValue().file.getPath());
+                        Worker.createCSV(fileTreeObject.getValue().file.getPath());
                         DataStore.csvFiles.add(new FileTreeObject(new File(fileTreeObject.getValue().file.getPath().replaceAll("ht", "csv").replaceFirst("xml", "csv"))));
                     }
                 });
@@ -308,9 +310,5 @@ public class Window extends Application {
         vBox.getChildren().addAll(jfxTreeTableView, hBox, jfxButton);
         tab.setContent(vBox);
         return tab;
-    }
-
-    public static void main(String... args) {
-        launch(args);
     }
 }

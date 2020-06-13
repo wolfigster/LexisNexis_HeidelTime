@@ -120,6 +120,28 @@
     -fx-text-fill: WHITE;
 }
 
+.button-menu:hover {
+    -fx-padding: 0.7em 0.57em;
+    -fx-font-size: 14px;
+    -fx-background-color: rgb(200, 50, 50);
+    -fx-pref-width: 150;
+    -fx-pref-height: 50;
+    -fx-text-fill: WHITE;
+    -fx-border-radius: 0;
+    -fx-border-color: black;
+}
+
+.button-menu {
+    -fx-padding: 0.7em 0.57em;
+    -fx-font-size: 14px;
+    -fx-background-color: rgb(200, 100, 100);
+    -fx-pref-width: 150;
+    -fx-pref-height: 50;
+    -fx-text-fill: WHITE;
+    -fx-border-radius: 0;
+    -fx-border-color: black;
+}
+
 /* The main scrollbar **track** CSS class  */
 .mylistview .scroll-bar:horizontal .track,
 .mylistview .scroll-bar:vertical .track {
@@ -280,6 +302,10 @@
 .tree-table-view {
     -fx-tree-table-color: rgba(255, 0, 0, 0.2);
     -fx-tree-table-rippler-color: rgba(255, 0, 0, 0.4);
+}
+
+.tree-table-row-cell {
+    -fx-pref-height: 35;
 }
 
 .tree-table-view .jfx-text-field{
