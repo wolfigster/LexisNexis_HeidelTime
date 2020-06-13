@@ -49,6 +49,17 @@ public class DataStore {
             number++;
         }
 
-        for(String line : reader.readFileLineByLineFromLine(new File("./overview.csv"), 2)) overviewList.add(new CSVTreeObject(line));
+        if(new File("./overview.csv").exists()) for(String line : reader.readFileLineByLineFromLine(new File("./overview.csv"), 2)) overviewList.add(new CSVTreeObject(line));
+    }
+
+    public static void reloadDataStore() {
+        files.clear();
+        xmlFiles.clear();
+        txtFiles.clear();
+        htFiles.clear();
+        csvFiles.clear();
+        linkList.clear();
+        overviewList.clear();
+        loadDataStore();
     }
 }
