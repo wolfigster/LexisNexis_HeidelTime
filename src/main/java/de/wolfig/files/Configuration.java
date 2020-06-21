@@ -2,6 +2,7 @@ package de.wolfig.files;
 
 import com.lexisnexis.bulk.BulkWrapper;
 import com.lexisnexis.bulk.Util;
+import de.wolfig.DateRule;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,6 +16,7 @@ public class Configuration {
 
     private static final Logger LOGGER = LogManager.getLogger(Configuration.class);
     private static final File CONFIG = new File("./config.xml");
+    private static final File DATERULE = new File("./daterule.xml");
     private static Properties properties = null;
     private static String clientId = null;
     private static String clientSecret = null;
@@ -55,6 +57,22 @@ public class Configuration {
 
             accessToken = properties.getProperty("access.token");
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            properties = new Properties();
+            FileInputStream fileInputStream = new FileInputStream(DATERULE);
+            properties.loadFromXML(fileInputStream);
+            fileInputStream.close();
+            DateRule.set(properties.getProperty("linesBasedOn"),
+                    properties.getProperty("week"),
+                    properties.getProperty("month"),
+                    properties.getProperty("year"),
+                    properties.getProperty("quarter"),
+                    properties.getProperty("halfYear"),
+                    properties.getProperty("weekend"),
+                    properties.getProperty("season"));
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,12 +1,12 @@
 package de.wolfig;
 
-import de.wolfig.response.document.BodyText;
-import de.wolfig.response.document.Entry;
-import de.wolfig.response.list.DocumentList;
 import de.wolfig.files.Configuration;
 import de.wolfig.files.Reader;
 import de.wolfig.files.Writer;
 import de.wolfig.lexisnexis.Requester;
+import de.wolfig.response.document.BodyText;
+import de.wolfig.response.document.Entry;
+import de.wolfig.response.list.DocumentList;
 import de.wolfig.response.list.Value;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,12 +20,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 public class Worker {
 
@@ -73,6 +76,10 @@ public class Worker {
 
     public static void stop() {
         writer.closeWriter();
+    }
+
+    public static void start() {
+        writer = new Writer(listFile, true);
     }
 
     public static String requestListItem(String url) {
@@ -199,9 +206,9 @@ public class Worker {
     public static void createCSV(String heidelTimeFile) {
         String publication = "";
         int i = 1;
-        int lineNumber = 1;
+        int lineNumber = (DateRule.getLinesBasedOn().equals("ht")) ? 1 : -1;
         writer.changeWriterSettings(heidelTimeFile.replace("xml", "csv").replaceFirst("ht", "csv"), false);
-        writer.writeToFile("Number;Person;Jobtitle;Type;Date;TIMEX3;Publication;Line;Distance\n");
+        writer.writeToFile("Number;Person;;Type;TIMEX3;Publication;Date;Actual Date;Distance;;Line " + DateRule.getLinesBasedOn() + "\n");
         writer.changeWriterAppend(true);
         for(String line : reader.readFileLineByLine(new File(heidelTimeFile))) {
             if(line.startsWith("$Date")) publication = line.substring(7,17);
@@ -222,9 +229,13 @@ public class Worker {
                     Matcher matcher3 = patternTimex3message.matcher(matcher.group());
                     while(matcher3.find()) timex3msg = matcher3.group();
                     timex3msg = timex3msg.substring(2, timex3msg.length()-1);
-                    String distance = "0";
                     // distance calculation required
-                    writer.writeToFile(i + ";" + person + ";" + jobTitle + ";" + type + ";" + date + ";" + timex3msg + ";" + publication + ";" + lineNumber + ";" + distance + "\n");
+                    String actualDate = DateRule.calculateDate(date, publication);
+                    LocalDate actualLocalDate = LocalDate.parse(actualDate);
+                    LocalDate publicationLocalDate = LocalDate.parse(publication);
+                    String distance = String.valueOf(DAYS.between(publicationLocalDate, actualLocalDate));
+
+                    writer.writeToFile(i + ";" + person + ";;" + type + ";" + timex3msg + ";" + publication + ";" + date + ";" + actualDate + ";" + distance + ";;" + lineNumber + "\n");
                     i++;
                 }
             }

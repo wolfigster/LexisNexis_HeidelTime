@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="linesBasedOn">ht</entry>
+    <entry key="weekend">sa/su</entry>
+    <entry key="week">mo/tu/we/th/fr/sa/su</entry>
+    <entry key="month">first/mid/last/12d</entry>
+    <entry key="year">first/mid/last/27.05</entry>
+    <entry key="quarter">first/mid/last</entry>
+    <entry key="season">first/mid/last</entry>
+    <entry key="halfYear">first/mid/last</entry>
+</properties>

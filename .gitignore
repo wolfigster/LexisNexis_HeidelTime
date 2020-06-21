@@ -17,4 +17,5 @@ logs/*
 config.xml
 list.txt
 overview.csv
+daterule.xml
 heideltime-standalone/config.props
