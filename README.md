@@ -34,6 +34,7 @@ rootdirectory
 │   ├── INSTALL.txt
 │   └── README.txt
 ├── config.xml
+├── daterule.xml
 ├── LexisNexis_HeidelTime-e273d44-1.0.jar
 ├── list.txt
 └── overview.csv
@@ -48,6 +49,23 @@ rootdirectory
 <entry key="client.id">AV3A9BM0IT2AMB36I3DMRTL4E0ENDZNK7J0KGDWL</entry>
 <entry key="access.token">will be generated</entry>
 <entry key="access.expired">1588609920215</entry>
+</properties>
+```
+
+
+### daterule.xml example
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<entry key="linesBasedOn">ht</entry>
+<entry key="weekend">sa</entry>
+<entry key="week">th</entry>
+<entry key="month">mid</entry>
+<entry key="year">mid</entry>
+<entry key="quarter">mid</entry>
+<entry key="season">mid</entry>
+<entry key="halfYear">mid</entry>
 </properties>
 ```
 
