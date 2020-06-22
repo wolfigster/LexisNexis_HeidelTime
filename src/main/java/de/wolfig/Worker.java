@@ -206,7 +206,7 @@ public class Worker {
     public static void createCSV(String heidelTimeFile) {
         String publication = "";
         int i = 1;
-        int lineNumber = (DateRule.getLinesBasedOn().equals("ht")) ? 1 : -1;
+        int lineNumber = (DateRule.getLinesBasedOn().equals("ht")) ? 1 : -2;
         writer.changeWriterSettings(heidelTimeFile.replace("xml", "csv").replaceFirst("ht", "csv"), false);
         writer.writeToFile("Number;Person;;Type;TIMEX3;Publication;Date;Actual Date;Distance;;Line " + DateRule.getLinesBasedOn() + "\n");
         writer.changeWriterAppend(true);
