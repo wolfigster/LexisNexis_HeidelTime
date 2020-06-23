@@ -230,7 +230,7 @@ public class Worker {
                     while(matcher3.find()) timex3msg = matcher3.group();
                     timex3msg = timex3msg.substring(2, timex3msg.length()-1);
                     // distance calculation required
-                    String actualDate = DateRule.calculateDate(date, publication);
+                    String actualDate = DateRule.calculateDate(type, date, publication);
                     LocalDate actualLocalDate = LocalDate.parse(actualDate);
                     LocalDate publicationLocalDate = LocalDate.parse(publication);
                     String distance = String.valueOf(DAYS.between(publicationLocalDate, actualLocalDate));
