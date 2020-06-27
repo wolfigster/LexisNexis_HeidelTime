@@ -12,23 +12,43 @@ public class DateRule {
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
     private static String linesBasedOn = "ht";
-    private static String week = "";
-    private static String month = "";
-    private static String year = "";
-    private static String quarter = "";
-    private static String halfYear = "";
-    private static String weekend = "";
-    private static String season = "";
+    private static int datePast = 0;
+    private static int dateFuture = 0;
+    private static String dateWeek = "";
+    private static String dateMonth = "";
+    private static String dateYear = "";
+    private static String dateQuarter = "";
+    private static String dateHalfYear = "";
+    private static String dateWeekend = "";
+    private static String dateSeason = "";
+    private static int durationDays = 0;
+    private static int durationWeeks = 0;
+    private static int durationMonths = 0;
+    private static int durationQuarters = 0;
+    private static int durationYears = 0;
 
-    public static void set(String _linesBasedOn, String _week, String _month, String _year, String _quarter, String _halfYear, String _weekend, String _season) {
+    public static void set(String _linesBasedOn, String _datePast, String _dateFuture, String _week, String _month,
+                           String _year, String _quarter, String _halfYear, String _weekend, String _season,
+                           String _durationDays, String _durationWeeks, String _durationMonths,
+                           String _durationQuarters, String _durationYears) {
+
         linesBasedOn = _linesBasedOn;
-        week = _week;
-        month = _month;
-        year = _year;
-        quarter = _quarter;
-        halfYear = _halfYear;
-        weekend = _weekend;
-        season = _season;
+
+        datePast = Integer.parseInt(_datePast);
+        dateFuture = Integer.parseInt(_dateFuture);
+        dateWeek = _week;
+        dateMonth = _month;
+        dateYear = _year;
+        dateQuarter = _quarter;
+        dateHalfYear = _halfYear;
+        dateWeekend = _weekend;
+        dateSeason = _season;
+
+        durationDays = Integer.parseInt(_durationDays);
+        durationWeeks = Integer.parseInt(_durationWeeks);
+        durationMonths = Integer.parseInt(_durationMonths);
+        durationQuarters = Integer.parseInt(_durationQuarters);
+        durationYears = Integer.parseInt(_durationYears);
     }
 
     public static String getLinesBasedOn() {
@@ -52,14 +72,14 @@ public class DateRule {
             case "DATE":
                 if (date.matches("FUTURE_REF")) {
                     gregorianCalendar.setTime(publicationDate);
-                    gregorianCalendar.add(GregorianCalendar.MONTH, 3);
+                    gregorianCalendar.add(GregorianCalendar.MONTH, dateFuture);
                     //System.out.println("FUTURE_REF: (" + date + ")" + simpleDateFormat.format(gregorianCalendar.getTime()));
                     //return simpleDateFormat.format(gregorianCalendar.getTime());
                     desc = "FUTURE_REF";
                     actualDate = simpleDateFormat.format(gregorianCalendar.getTime());
                 } else if (date.matches("PAST_REF")) {
                     gregorianCalendar.setTime(publicationDate);
-                    gregorianCalendar.add(GregorianCalendar.MONTH, -3);
+                    gregorianCalendar.add(GregorianCalendar.MONTH, -datePast);
                     //System.out.println("PAST_REF: (" + date + ")" + simpleDateFormat.format(gregorianCalendar.getTime()));
                     //return simpleDateFormat.format(gregorianCalendar.getTime());
                     desc = "PAST_REF";
@@ -78,7 +98,7 @@ public class DateRule {
                 else if (date.matches("^\\d{4}$")) {
                     YearMonth yearMonth = null;
                     int day = 0;
-                    switch (year) {
+                    switch (dateYear) {
                         case "first":
                             yearMonth = YearMonth.of(Integer.parseInt(date), 1);
                             day = 1;
@@ -92,7 +112,7 @@ public class DateRule {
                             day = yearMonth.lengthOfMonth();
                             break;
                         default:
-                            String[] d = year.split("\\.");
+                            String[] d = dateYear.split("\\.");
                             yearMonth = YearMonth.of(Integer.parseInt(date), Integer.parseInt(d[1]));
                             day = Integer.parseInt(d[0]);
                     }
@@ -107,7 +127,7 @@ public class DateRule {
                     String[] dat = date.split("-");
                     int day = 0;
                     YearMonth yearMonth = YearMonth.of(Integer.parseInt(dat[0]), Integer.parseInt(dat[1]));
-                    switch (month) {
+                    switch (dateMonth) {
                         case "first":
                             day = 1;
                             break;
@@ -118,7 +138,7 @@ public class DateRule {
                             day = yearMonth.lengthOfMonth();
                             break;
                         default:
-                            day = Integer.parseInt(month.replace("d", ""));
+                            day = Integer.parseInt(dateMonth.replace("d", ""));
                             break;
                     }
                     gregorianCalendar.set(Integer.parseInt(dat[0]), Integer.parseInt(dat[1]) - 1, day);
@@ -130,7 +150,7 @@ public class DateRule {
 
                 else if (date.matches("^\\d{4}-W\\d{2}$")) {
                     String[] dat = date.split("-W");
-                    switch (week) {
+                    switch (dateWeek) {
                         case "mo":
                             gregorianCalendar.setWeekDate(Integer.parseInt(dat[0]), Integer.parseInt(dat[1]), 2);
                             break;
@@ -161,7 +181,7 @@ public class DateRule {
 
                 else if (date.matches("^\\d{4}-W\\d{2}-WE$")) {
                     String[] dat = date.split("-W");
-                    if (weekend.equals("su"))
+                    if (dateWeekend.equals("su"))
                         gregorianCalendar.setWeekDate(Integer.parseInt(dat[0]), Integer.parseInt(dat[1]), 1);
                     else
                         gregorianCalendar.setWeekDate(Integer.parseInt(dat[0]), Integer.parseInt(dat[1]), 7); //1 is sunday
@@ -178,7 +198,7 @@ public class DateRule {
                     int day = 0;
                     if (dat[1].equals("1")) month = 2;
                     else if (dat[1].equals("2")) month = 8;
-                    switch (halfYear) {
+                    switch (dateHalfYear) {
                         case "first":
                             yearMonth = YearMonth.of(Integer.parseInt(dat[0]), month - 2);
                             day = 1;
@@ -218,7 +238,7 @@ public class DateRule {
                             break;
                     }
                     YearMonth yearMonth = null;
-                    switch (season) {
+                    switch (dateSeason) {
                         case "first":
                             yearMonth = YearMonth.of(Integer.parseInt(dat[0]), month - 1);
                             day = 1;
@@ -266,7 +286,7 @@ public class DateRule {
                             break;
                     }
                     YearMonth yearMonth = null;
-                    switch (quarter) {
+                    switch (dateQuarter) {
                         case "first":
                             yearMonth = YearMonth.of(Integer.parseInt(dat[0]), month - 1);
                             day = 1;
@@ -318,17 +338,19 @@ public class DateRule {
                 else if (date.matches("^PX[DWMQY]$")) {
                     switch (date.replace("PX", "")) {
                         case "D":
-                            gregorianCalendar.add(GregorianCalendar.DAY_OF_YEAR, 3);
+                            gregorianCalendar.add(GregorianCalendar.DAY_OF_YEAR, durationDays);
                             break;
                         case "W":
-                            gregorianCalendar.add(GregorianCalendar.WEEK_OF_YEAR, 3);
+                            gregorianCalendar.add(GregorianCalendar.WEEK_OF_YEAR, durationWeeks);
                             break;
                         case "M":
+                            gregorianCalendar.add(GregorianCalendar.MONTH, durationMonths);
+                            break;
                         case "Q":
-                            gregorianCalendar.add(GregorianCalendar.MONTH, 3);
+                            gregorianCalendar.add(GregorianCalendar.MONTH, durationQuarters);
                             break;
                         case "Y":
-                            gregorianCalendar.add(GregorianCalendar.YEAR, 3);
+                            gregorianCalendar.add(GregorianCalendar.YEAR, durationYears);
                             break;
                     }
                     //System.out.println("Inexact Duration: (" + date + ")" + simpleDateFormat.format(gregorianCalendar.getTime()));
