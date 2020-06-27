@@ -66,13 +66,20 @@ public class Configuration {
             properties.loadFromXML(fileInputStream);
             fileInputStream.close();
             DateRule.set(properties.getProperty("linesBasedOn"),
-                    properties.getProperty("week"),
-                    properties.getProperty("month"),
-                    properties.getProperty("year"),
-                    properties.getProperty("quarter"),
-                    properties.getProperty("halfYear"),
-                    properties.getProperty("weekend"),
-                    properties.getProperty("season"));
+                    properties.getProperty("date.past"),
+                    properties.getProperty("date.future"),
+                    properties.getProperty("date.week"),
+                    properties.getProperty("date.month"),
+                    properties.getProperty("date.year"),
+                    properties.getProperty("date.quarter"),
+                    properties.getProperty("date.halfYear"),
+                    properties.getProperty("date.weekend"),
+                    properties.getProperty("date.season"),
+                    properties.getProperty("duration.days"),
+                    properties.getProperty("duration.weeks"),
+                    properties.getProperty("duration.months"),
+                    properties.getProperty("duration.quarters"),
+                    properties.getProperty("duration.years"));
         } catch (IOException e) {
             e.printStackTrace();
         }
