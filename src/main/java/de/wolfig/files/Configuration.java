@@ -66,25 +66,29 @@ public class Configuration {
             FileInputStream fileInputStream = new FileInputStream(DATERULE);
             properties.loadFromXML(fileInputStream);
             fileInputStream.close();
-            DateRule.set(properties.getProperty("linesbasedon"),
-                    properties.getProperty("date.past"),
-                    properties.getProperty("date.future"),
-                    properties.getProperty("date.week"),
-                    properties.getProperty("date.month"),
-                    properties.getProperty("date.year"),
-                    properties.getProperty("date.quarter"),
-                    properties.getProperty("date.halfYear"),
-                    properties.getProperty("date.weekend"),
-                    properties.getProperty("date.season"),
-                    properties.getProperty("duration.days"),
-                    properties.getProperty("duration.weeks"),
-                    properties.getProperty("duration.months"),
-                    properties.getProperty("duration.quarters"),
-                    properties.getProperty("duration.years"));
+            setDateRule(properties);
             dateruleProperties = properties;
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void setDateRule(Properties properties) {
+        DateRule.set(properties.getProperty("linesbasedon"),
+                properties.getProperty("date.past"),
+                properties.getProperty("date.future"),
+                properties.getProperty("date.week"),
+                properties.getProperty("date.month"),
+                properties.getProperty("date.year"),
+                properties.getProperty("date.quarter"),
+                properties.getProperty("date.halfYear"),
+                properties.getProperty("date.weekend"),
+                properties.getProperty("date.season"),
+                properties.getProperty("duration.days"),
+                properties.getProperty("duration.weeks"),
+                properties.getProperty("duration.months"),
+                properties.getProperty("duration.quarters"),
+                properties.getProperty("duration.years"));
     }
 
     public static void saveDateRules(Properties _dateruleProperties) {
@@ -92,6 +96,7 @@ public class Configuration {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(DATERULE);
             dateruleProperties.storeToXML(fileOutputStream, null);
+            setDateRule(dateruleProperties);
         } catch (IOException e) {
             e.printStackTrace();
         }
