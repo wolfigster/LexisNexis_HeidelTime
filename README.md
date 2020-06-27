@@ -58,14 +58,21 @@ rootdirectory
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
-<entry key="linesBasedOn">ht</entry>
-<entry key="weekend">sa</entry>
-<entry key="week">th</entry>
-<entry key="month">mid</entry>
-<entry key="year">mid</entry>
-<entry key="quarter">mid</entry>
-<entry key="season">mid</entry>
-<entry key="halfYear">mid</entry>
+<entry key="linesbasedon">ht</entry>
+<entry key="date.past">3</entry>
+<entry key="date.future">3</entry>
+<entry key="date.weekend">sa</entry>
+<entry key="date.week">th</entry>
+<entry key="date.month">mid</entry>
+<entry key="date.year">mid</entry>
+<entry key="date.quarter">mid</entry>
+<entry key="date.season">mid</entry>
+<entry key="date.halfYear">mid</entry>
+<entry key="duration.days">3</entry>
+<entry key="duration.weeks">3</entry>
+<entry key="duration.months">3</entry>
+<entry key="duration.quarters">3</entry>
+<entry key="duration.years">3</entry>
 </properties>
 ```
 
