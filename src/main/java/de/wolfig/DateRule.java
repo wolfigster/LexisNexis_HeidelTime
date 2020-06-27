@@ -123,6 +123,15 @@ public class DateRule {
                     actualDate = simpleDateFormat.format(gregorianCalendar.getTime());
                 }
 
+                else if (date.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                    String[] dat = date.split("-");
+                    gregorianCalendar.set(Integer.parseInt(dat[0]), Integer.parseInt(dat[1]) - 1, Integer.parseInt(dat[2]));
+                    //System.out.println("Normal Date: (" + date + ")" + simpleDateFormat.format(gregorianCalendar.getTime()));
+                    //return simpleDateFormat.format(gregorianCalendar.getTime());
+                    desc = "Normal Date";
+                    actualDate = simpleDateFormat.format(gregorianCalendar.getTime());
+                }
+
                 else if (date.matches("^\\d{4}-\\d{2}$")) {
                     String[] dat = date.split("-");
                     int day = 0;
