@@ -1,19 +1,31 @@
 package de.wolfig.fx.components;
 
 import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXTextField;
 import de.wolfig.Worker;
+import de.wolfig.files.Configuration;
 import de.wolfig.fx.DataStore;
 import de.wolfig.fx.treeobjects.CSVTreeObject;
 import de.wolfig.fx.treeobjects.FileTreeObject;
 import de.wolfig.fx.treeobjects.LinkTreeObject;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TreeItem;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Properties;
 
 public class MenuBox extends HBox {
 
@@ -23,7 +35,7 @@ public class MenuBox extends HBox {
     static JFXButton convertButton = new JFXButton("Convert XML");
     static JFXButton heideltimeButton = new JFXButton("Run Heideltime");
     static JFXButton csvButton = new JFXButton("Create CSV");
-    static JFXButton emptyButton = new JFXButton("");
+    static JFXButton configurationButton = new JFXButton("Edit Config");
     static JFXButton githubButton = new JFXButton("Open GitHub");
 
     public MenuBox() {
@@ -33,7 +45,7 @@ public class MenuBox extends HBox {
         convertButton.setDisable(true);
         heideltimeButton.setDisable(true);
         csvButton.setDisable(true);
-        emptyButton.setDisable(true);
+        configurationButton.setDisable(false);
         githubButton.setDisable(false);
 
         reloadButton.getStyleClass().add("button-menu");
@@ -42,7 +54,7 @@ public class MenuBox extends HBox {
         convertButton.getStyleClass().add("button-menu");
         heideltimeButton.getStyleClass().add("button-menu");
         csvButton.getStyleClass().add("button-menu");
-        emptyButton.getStyleClass().add("button-menu");
+        configurationButton.getStyleClass().add("button-menu");
         githubButton.getStyleClass().add("button-menu");
 
         reloadButton.setOnMouseClicked((click) -> {
@@ -149,13 +161,136 @@ public class MenuBox extends HBox {
             thread.start();
         });
 
-        emptyButton.setOnMouseClicked((click) -> {
-            Thread thread = new Thread("emptyButton Thread") {
-                public void run() {
-                    // Do nothing
+        configurationButton.setOnMouseClicked((click) -> {
+            try {
+                Stage stage = new Stage();
+                Properties properties = Configuration.getDateRuleProperties();
+
+                GridPane gridPane = new GridPane();
+                gridPane.setPadding(new Insets(20));
+                gridPane.setHgap(5);
+                gridPane.setVgap(5);
+                Label title = new Label("DateRule Configuration");
+                title.setScaleY(2);
+                title.setScaleX(2);
+                title.setAlignment(Pos.CENTER);
+                FlowPane flowPane = new FlowPane(title);
+                flowPane.setPadding(new Insets(10));
+                flowPane.setAlignment(Pos.CENTER);
+                gridPane.add(flowPane, 0, 0, 2, 1);
+
+                VBox normalProperties = new VBox(new Label("General"));
+                normalProperties.setSpacing(20);
+                normalProperties.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
+                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+                VBox dateProperties = new VBox(new Label("Date"));
+                dateProperties.setSpacing(20);
+                dateProperties.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
+                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+                VBox durationProperties = new VBox(new Label("Duration"));
+                durationProperties.setSpacing(20);
+                durationProperties.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
+                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+
+                for(String property : properties.stringPropertyNames()) {
+                    HBox hBox = new HBox();
+                    hBox.setSpacing(10);
+                    hBox.setAlignment(Pos.CENTER_LEFT);
+                    Label label = property.contains(".") ? new Label(property.split("\\.")[1].substring(0,1).toUpperCase() + property.split("\\.")[1].substring(1)) : new Label(property.substring(0,1).toUpperCase() + property.substring(1));
+                    label.setAlignment(Pos.CENTER_RIGHT);
+                    label.setPrefWidth(100);
+                    JFXTextField textField = new JFXTextField(properties.getProperty(property));
+                    textField.setPrefWidth(45);
+                    hBox.getChildren().addAll(label, textField);
+                    if(property.startsWith("date")) {
+                        dateProperties.getChildren().add(hBox);
+                    } else if(property.startsWith("duration")) {
+                        durationProperties.getChildren().add(hBox);
+                    } else {
+                        normalProperties.getChildren().add(hBox);
+                    }
                 }
-            };
-            thread.start();
+
+                gridPane.add(normalProperties, 0, 1);
+                gridPane.add(durationProperties, 0, 2);
+                gridPane.add(dateProperties, 1, 1, 1, 2);
+
+                JFXButton saveButton = new JFXButton("SAVE");
+                saveButton.setStyle("-fx-background-color: rgba(200,100,100,0.5);" + "-fx-padding: 10;" + "-fx-border-style: solid inside;"
+                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+                saveButton.setOnMouseClicked((clickSave) -> {
+                    Thread thread = new Thread("saveButton Thread") {
+                        public void run() {
+                            String propName = null;
+                            String propValue = null;
+                            for(Node node : normalProperties.getChildren()) {
+                                if(node.getClass().equals(HBox.class)) {
+                                    for(Node n : ((HBox) node).getChildren()) {
+                                        System.out.println(n);
+                                        if(n.getClass().equals(JFXTextField.class)) {
+                                            JFXTextField jfxTextField = (JFXTextField) n;
+                                            propValue = jfxTextField.getText();
+                                        } else if(n.getClass().equals(Label.class)) {
+                                            Label label = (Label) n;
+                                            propName = label.getText();
+                                        }
+                                    }
+                                    properties.setProperty(propName.toLowerCase(), propValue);
+                                }
+                            }
+                            for(Node node : durationProperties.getChildren()) {
+                                if(node.getClass().equals(HBox.class)) {
+                                    for(Node n : ((HBox) node).getChildren()) {
+                                        if(n.getClass().equals(JFXTextField.class)) {
+                                            JFXTextField jfxTextField = (JFXTextField) n;
+                                            propValue = jfxTextField.getText();
+                                        } else if(n.getClass().equals(Label.class)) {
+                                            Label label = (Label) n;
+                                            propName = label.getText();
+                                        }
+                                    }
+                                    properties.setProperty("duration." + propName.toLowerCase(), propValue);
+                                }
+                            }
+                            for(Node node : dateProperties.getChildren()) {
+                                if(node.getClass().equals(HBox.class)) {
+                                    for(Node n : ((HBox) node).getChildren()) {
+                                        if(n.getClass().equals(JFXTextField.class)) {
+                                            JFXTextField jfxTextField = (JFXTextField) n;
+                                            propValue = jfxTextField.getText();
+                                        } else if(n.getClass().equals(Label.class)) {
+                                            Label label = (Label) n;
+                                            propName = label.getText();
+                                        }
+                                    }
+                                    properties.setProperty("date." + propName.toLowerCase(), propValue);
+                                }
+                            }
+                            // save properties from textfields.
+                            Configuration.saveDateRules(properties);
+                        }
+                    };
+                    thread.start();
+                });
+                JFXButton closeButton = new JFXButton("CLOSE");
+                closeButton.setStyle("-fx-background-color: rgba(200,100,100,0.5);" + "-fx-padding: 10;" + "-fx-border-style: solid inside;"
+                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+                closeButton.setOnMouseClicked((clickClose) -> {
+                    stage.close();
+                });
+
+                HBox buttonBox = new HBox();
+                buttonBox.setSpacing(10);
+                buttonBox.setAlignment(Pos.BOTTOM_RIGHT);
+                buttonBox.getChildren().addAll(saveButton, closeButton);
+                gridPane.add(buttonBox, 1, 3);
+                stage.setTitle("Configuration: daterule.xml");
+                stage.setScene(new Scene(gridPane, 390, 610));
+                stage.setResizable(false);
+                stage.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
 
         githubButton.setOnMouseClicked((click) -> {
@@ -175,7 +310,7 @@ public class MenuBox extends HBox {
 
         this.setPrefSize(1200, 50);
         //this.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0), CornerRadii.EMPTY, Insets.EMPTY)));
-        this.getChildren().addAll(reloadButton, requestDocumentButton, requestListButton, convertButton, heideltimeButton, csvButton, emptyButton, githubButton);
+        this.getChildren().addAll(reloadButton, requestDocumentButton, requestListButton, convertButton, heideltimeButton, csvButton, configurationButton, githubButton);
     }
 
     static void setCurrentTab(String text) {

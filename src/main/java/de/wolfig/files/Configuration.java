@@ -17,6 +17,7 @@ public class Configuration {
     private static final Logger LOGGER = LogManager.getLogger(Configuration.class);
     private static final File CONFIG = new File("./config.xml");
     private static final File DATERULE = new File("./daterule.xml");
+    private static Properties dateruleProperties = null;
     private static Properties properties = null;
     private static String clientId = null;
     private static String clientSecret = null;
@@ -65,7 +66,7 @@ public class Configuration {
             FileInputStream fileInputStream = new FileInputStream(DATERULE);
             properties.loadFromXML(fileInputStream);
             fileInputStream.close();
-            DateRule.set(properties.getProperty("linesBasedOn"),
+            DateRule.set(properties.getProperty("linesbasedon"),
                     properties.getProperty("date.past"),
                     properties.getProperty("date.future"),
                     properties.getProperty("date.week"),
@@ -80,9 +81,24 @@ public class Configuration {
                     properties.getProperty("duration.months"),
                     properties.getProperty("duration.quarters"),
                     properties.getProperty("duration.years"));
+            dateruleProperties = properties;
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void saveDateRules(Properties _dateruleProperties) {
+        dateruleProperties = _dateruleProperties;
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(DATERULE);
+            dateruleProperties.storeToXML(fileOutputStream, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Properties getDateRuleProperties() {
+        return dateruleProperties;
     }
 
     public static String getAccessToken() {
