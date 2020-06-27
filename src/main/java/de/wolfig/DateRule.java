@@ -205,8 +205,8 @@ public class DateRule {
                     YearMonth yearMonth = null;
                     int month = 0;
                     int day = 0;
-                    if (dat[1].equals("1")) month = 2;
-                    else if (dat[1].equals("2")) month = 8;
+                    if (dat[1].equals("1")) month = 3;
+                    else if (dat[1].equals("2")) month = 9;
                     switch (dateHalfYear) {
                         case "first":
                             yearMonth = YearMonth.of(Integer.parseInt(dat[0]), month - 2);
@@ -384,7 +384,8 @@ public class DateRule {
                             gregorianCalendar.add(GregorianCalendar.MONTH, amount * 3);
                             break;
                         case "Y":
-                            gregorianCalendar.add(GregorianCalendar.YEAR, amount);
+                            if (date.matches("^P\\d{4}Y$")) gregorianCalendar.add(GregorianCalendar.YEAR, 1);
+                            else gregorianCalendar.add(GregorianCalendar.YEAR, amount);
                             break;
                         case "DE":
                             gregorianCalendar.add(GregorianCalendar.YEAR, amount * 10);
