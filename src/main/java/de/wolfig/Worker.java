@@ -48,6 +48,9 @@ public class Worker {
     private static final Pattern patternTimex3value = Pattern.compile("value=\".*?\"");
     private static final Pattern patternTimex3message = Pattern.compile("\">.*?<");
 
+    private static final Pattern patternQuarter = Pattern.compile("( )(Q[1-4])([,\\. \\?\\!])");
+    private static final Pattern patternYear = Pattern.compile("( )(')([0-9]{2})([,\\. \\?\\!])");
+
     private static Requester requester = null;
     private static Reader reader = null;
     private static Writer writer = null;
@@ -211,6 +214,21 @@ public class Worker {
         writer.writeToFile("Number;Person;;Type;TIMEX3;Publication;Date;Actual Date;Distance;;Line " + DateRule.getLinesBasedOn() + "\n");
         writer.changeWriterAppend(true);
         for(String line : reader.readFileLineByLine(new File(heidelTimeFile))) {
+
+            for(int l = 0; l < 2; l++) {
+                StringBuffer stringBuffer = new StringBuffer(line.length());
+                if (l == 0) {
+                    Matcher match = patternQuarter.matcher(line);
+                    while (match.find()) match.appendReplacement(stringBuffer, Matcher.quoteReplacement(match.group(1) + "<TIMEX3 tid=\"" + getRandom4DigitNumber() + "\" type=\"DATE\" + value=\"" + publication.split("-")[0] + "-" + match.group(2) + "\">" + match.group(2) + "</TIMEX3>" + match.group(3)));
+                    match.appendTail(stringBuffer);
+                } else {
+                    Matcher match = patternYear.matcher(line);
+                    while (match.find()) match.appendReplacement(stringBuffer, Matcher.quoteReplacement(match.group(1) + "<TIMEX3 tid=\"" + getRandom4DigitNumber() + "\" type=\"DATE\" + value=\"20" + match.group(3) + "\">" + match.group(2) + match.group(3) + "</TIMEX3>" + match.group(4)));
+                    match.appendTail(stringBuffer);
+                }
+                line = stringBuffer.toString();
+            }
+
             if(line.startsWith("$Date")) publication = line.substring(7,17);
             if(line.startsWith("<PERSON>")) {
                 Matcher matcher = patternTimex3.matcher(line);
@@ -242,6 +260,10 @@ public class Worker {
             lineNumber++;
         }
         writer.closeWriter();
+    }
+
+    private static int getRandom4DigitNumber() {
+        return new Random().nextInt(8999) + 1000;
     }
 
 
