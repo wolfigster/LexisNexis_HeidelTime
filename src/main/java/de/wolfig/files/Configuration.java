@@ -84,6 +84,7 @@ public class Configuration {
                 properties.getProperty("date.halfYear"),
                 properties.getProperty("date.weekend"),
                 properties.getProperty("date.season"),
+                properties.getProperty("date.decade"),
                 properties.getProperty("duration.days"),
                 properties.getProperty("duration.weeks"),
                 properties.getProperty("duration.months"),

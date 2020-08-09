@@ -3,6 +3,7 @@ package de.wolfig;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.YearMonth;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -21,6 +22,7 @@ public class DateRule {
     private static String dateHalfYear = "";
     private static String dateWeekend = "";
     private static String dateSeason = "";
+    private static String dateDecade = "";
     private static int durationDays = 0;
     private static int durationWeeks = 0;
     private static int durationMonths = 0;
@@ -28,7 +30,7 @@ public class DateRule {
     private static int durationYears = 0;
 
     public static void set(String _linesBasedOn, String _datePast, String _dateFuture, String _week, String _month,
-                           String _year, String _quarter, String _halfYear, String _weekend, String _season,
+                           String _year, String _quarter, String _halfYear, String _weekend, String _season, String _decade,
                            String _durationDays, String _durationWeeks, String _durationMonths,
                            String _durationQuarters, String _durationYears) {
 
@@ -43,6 +45,7 @@ public class DateRule {
         dateHalfYear = _halfYear;
         dateWeekend = _weekend;
         dateSeason = _season;
+        dateDecade = _decade;
 
         durationDays = Integer.parseInt(_durationDays);
         durationWeeks = Integer.parseInt(_durationWeeks);
@@ -293,6 +296,18 @@ public class DateRule {
                             dat[0] = String.valueOf(Integer.parseInt(dat[0]) + 1);
                             month = 2;
                             break;
+                        case "6":
+                            dat[0] = String.valueOf(Integer.parseInt(dat[0]) + 1);
+                            month = 5;
+                            break;
+                        case "7":
+                            dat[0] = String.valueOf(Integer.parseInt(dat[0]) + 1);
+                            month = 8;
+                            break;
+                        case "8":
+                            dat[0] = String.valueOf(Integer.parseInt(dat[0]) + 1);
+                            month = 11;
+                            break;
                     }
                     YearMonth yearMonth = null;
                     switch (dateQuarter) {
@@ -313,6 +328,25 @@ public class DateRule {
                     //System.out.println("Quarter: (" + date + ")" + simpleDateFormat.format(gregorianCalendar.getTime()));
                     //return simpleDateFormat.format(gregorianCalendar.getTime());
                     desc = "Quarter";
+                    actualDate = simpleDateFormat.format(gregorianCalendar.getTime());
+                }
+
+                else if (date.matches("^[12][09][0-9]$")) {
+                    int y = Integer.parseInt(date + "0");
+                    switch (dateDecade) {
+                        case "beginning":
+                            y += 0;
+                            break;
+                        case "middle":
+                            y += 5;
+                            break;
+                        case "ending":
+                            y += 10;
+                            break;
+                    }
+                    gregorianCalendar.set(y, Calendar.JANUARY, 1);
+
+                    desc = "Date Decade";
                     actualDate = simpleDateFormat.format(gregorianCalendar.getTime());
                 }
                 break;
@@ -365,6 +399,25 @@ public class DateRule {
                     //System.out.println("Inexact Duration: (" + date + ")" + simpleDateFormat.format(gregorianCalendar.getTime()));
                     //return simpleDateFormat.format(gregorianCalendar.getTime());
                     desc = "Inexact Duration";
+                    actualDate = simpleDateFormat.format(gregorianCalendar.getTime());
+                }
+
+                else if (date.matches("^P(19|20)([0-9])0DE$")) {
+                    int y = Integer.parseInt(date.replaceAll("[PDE]", ""));
+                    switch (dateDecade) {
+                        case "beginning":
+                            y += 0;
+                            break;
+                        case "middle":
+                            y += 5;
+                            break;
+                        case "ending":
+                            y += 10;
+                            break;
+                    }
+                    gregorianCalendar.set(y, Calendar.JANUARY, 1);
+
+                    desc = "Duration Decade";
                     actualDate = simpleDateFormat.format(gregorianCalendar.getTime());
                 }
 

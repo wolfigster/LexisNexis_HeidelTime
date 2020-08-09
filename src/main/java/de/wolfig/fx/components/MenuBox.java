@@ -285,7 +285,7 @@ public class MenuBox extends HBox {
                 buttonBox.getChildren().addAll(saveButton, closeButton);
                 gridPane.add(buttonBox, 1, 3);
                 stage.setTitle("Configuration: daterule.xml");
-                stage.setScene(new Scene(gridPane, 390, 610));
+                stage.setScene(new Scene(gridPane, 390, 660));
                 stage.setResizable(false);
                 stage.show();
             } catch (Exception e) {
