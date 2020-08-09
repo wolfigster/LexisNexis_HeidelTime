@@ -46,6 +46,7 @@ public class Worker {
     private static final Pattern patternTimex3 = Pattern.compile("<TIMEX3.*?</TIMEX3>");
     private static final Pattern patternTimex3type = Pattern.compile("type=\".*?\"");
     private static final Pattern patternTimex3value = Pattern.compile("value=\".*?\"");
+    private static final Pattern patternTimex3mod = Pattern.compile("mod=\".*?\"");
     private static final Pattern patternTimex3message = Pattern.compile("\">.*?<");
 
     private static final Pattern patternQuarter = Pattern.compile("( )(Q[1-4])([,\\. \\?\\!])");
@@ -247,8 +248,14 @@ public class Worker {
                     Matcher matcher3 = patternTimex3message.matcher(matcher.group());
                     while(matcher3.find()) timex3msg = matcher3.group();
                     timex3msg = timex3msg.substring(2, timex3msg.length()-1);
+                    String timex3mod = "";
+                    Matcher matcher4 = patternTimex3mod.matcher(matcher.group());
+                    while(matcher4.find()) timex3mod = matcher4.group();
+                    if(!timex3mod.equals("")) timex3mod = timex3mod.substring(5, timex3mod.length()-1);
+                    // add modifier mod
+
                     // distance calculation required
-                    String actualDate = DateRule.calculateDate(type, date, publication);
+                    String actualDate = DateRule.calculateDate(type, date, timex3mod, publication);
                     LocalDate actualLocalDate = LocalDate.parse(actualDate);
                     LocalDate publicationLocalDate = LocalDate.parse(publication);
                     String distance = String.valueOf(DAYS.between(publicationLocalDate, actualLocalDate));

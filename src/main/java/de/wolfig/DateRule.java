@@ -58,7 +58,7 @@ public class DateRule {
         return linesBasedOn;
     }
 
-    public static String calculateDate(String type, String date, String publication) {
+    public static String calculateDate(String type, String date, String modifier, String publication) {
         String actualDate = null;
         String desc = null;
         Date publicationDate = null;
