@@ -292,7 +292,11 @@ public class MenuBox extends HBox {
                     int amount = 0;
                     for(HashMap<String, String> map : hashMaps) {
                         boolean empty = false;
-                        for(String val : map.values()) if(val.equals("")) empty = true;
+                        for(String val : map.values())
+                            if (val.equals("") || !val.matches("first|mid|last|ht|txt|mo|tu|we|th|fr|sa|su|[0-3][0-9].[0-1][0-9]|[0-3][0-9]d|[0-9]{1,2}")) {
+                                empty = true;
+                                break;
+                            }
                         if(!empty) {
                             amount++;
                             for(Map.Entry<String, String> entry : map.entrySet()) {

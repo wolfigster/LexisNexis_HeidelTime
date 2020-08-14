@@ -162,7 +162,6 @@ public class DateRule {
                     YearMonth yearMonth = YearMonth.of(Integer.parseInt(dat[0]), Integer.parseInt(dat[1]));
                     String c = dateMonth.rules[number];
                     if(!modifier.equals("")) {
-                        System.out.println("MONTH MOD " + date + " - " + modifier);
                         switch (modifier) {
                             case "START":
                                 c = "first";
