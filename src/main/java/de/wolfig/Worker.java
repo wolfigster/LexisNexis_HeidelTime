@@ -46,6 +46,7 @@ public class Worker {
     private static final Pattern patternTimex3 = Pattern.compile("<TIMEX3.*?</TIMEX3>");
     private static final Pattern patternTimex3type = Pattern.compile("type=\".*?\"");
     private static final Pattern patternTimex3value = Pattern.compile("value=\".*?\"");
+    private static final Pattern patternTimex3mod = Pattern.compile("mod=\".*?\"");
     private static final Pattern patternTimex3message = Pattern.compile("\">.*?<");
 
     private static final Pattern patternQuarter = Pattern.compile("( )(Q[1-4])([,\\. \\?\\!])");
@@ -211,7 +212,9 @@ public class Worker {
         int i = 1;
         int lineNumber = (DateRule.getLinesBasedOn().equals("ht")) ? 1 : -2;
         writer.changeWriterSettings(heidelTimeFile.replace("xml", "csv").replaceFirst("ht", "csv"), false);
-        writer.writeToFile("Number;Person;;Type;TIMEX3;Publication;Date;Actual Date;Distance;;Line " + DateRule.getLinesBasedOn() + "\n");
+        StringBuilder stringBuilder = new StringBuilder();
+        for(int number = 0; number < DateRule.getRuleAmount(); number++) stringBuilder.append("Actual Date ").append(number).append(";").append("Distance ").append(number).append(";");
+        writer.writeToFile("Number;Person;Type;TIMEX3;Publication;Date;" + stringBuilder.toString() + ";Line " + DateRule.getLinesBasedOn() + "\n");
         writer.changeWriterAppend(true);
         for(String line : reader.readFileLineByLine(new File(heidelTimeFile))) {
 
@@ -247,13 +250,24 @@ public class Worker {
                     Matcher matcher3 = patternTimex3message.matcher(matcher.group());
                     while(matcher3.find()) timex3msg = matcher3.group();
                     timex3msg = timex3msg.substring(2, timex3msg.length()-1);
-                    // distance calculation required
-                    String actualDate = DateRule.calculateDate(type, date, publication);
-                    LocalDate actualLocalDate = LocalDate.parse(actualDate);
-                    LocalDate publicationLocalDate = LocalDate.parse(publication);
-                    String distance = String.valueOf(DAYS.between(publicationLocalDate, actualLocalDate));
+                    String timex3mod = "";
+                    Matcher matcher4 = patternTimex3mod.matcher(matcher.group());
+                    while(matcher4.find()) timex3mod = matcher4.group();
+                    if(!timex3mod.equals("")) timex3mod = timex3mod.substring(5, timex3mod.length()-1);
+                    // add modifier mod
 
-                    writer.writeToFile(i + ";" + person + ";;" + type + ";" + timex3msg + ";" + publication + ";" + date + ";" + actualDate + ";" + distance + ";;" + lineNumber + "\n");
+                    // distance calculation required
+                    stringBuilder = new StringBuilder();
+                    for(int number = 0; number < DateRule.getRuleAmount(); number++) {
+                        String actualDate = DateRule.calculateDate(number, type, date, timex3mod, publication);
+                        LocalDate actualLocalDate = LocalDate.parse(actualDate);
+                        LocalDate publicationLocalDate = LocalDate.parse(publication);
+                        String distance = String.valueOf(DAYS.between(publicationLocalDate, actualLocalDate));
+                        stringBuilder.append(actualDate).append(";").append(distance).append(";");
+                    }
+                    timex3mod = timex3mod.equals("START") || timex3mod.equals("MID") || timex3mod.equals("END") ? " (" + timex3mod + ")" : "";
+
+                    writer.writeToFile(i + ";" + person + ";" + type + ";" + timex3msg + ";" + publication + ";" + date + timex3mod + ";" + stringBuilder.toString() + ";" + lineNumber + "\n");
                     i++;
                 }
             }

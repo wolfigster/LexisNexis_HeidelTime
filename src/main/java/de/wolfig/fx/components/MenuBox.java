@@ -2,6 +2,7 @@ package de.wolfig.fx.components;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
+import de.wolfig.DateRule;
 import de.wolfig.Worker;
 import de.wolfig.files.Configuration;
 import de.wolfig.fx.DataStore;
@@ -13,11 +14,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.awt.*;
@@ -25,6 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class MenuBox extends HBox {
@@ -163,129 +167,22 @@ public class MenuBox extends HBox {
 
         configurationButton.setOnMouseClicked((click) -> {
             try {
+                // alles mit GridPanes machen -> HBox & VBox durch GridPane ersetzen. -> Letztlich ganz viele GridPanes in einem ScrollPane
                 Stage stage = new Stage();
                 Properties properties = Configuration.getDateRuleProperties();
 
-                GridPane gridPane = new GridPane();
-                gridPane.setPadding(new Insets(20));
-                gridPane.setHgap(5);
-                gridPane.setVgap(5);
-                Label title = new Label("DateRule Configuration");
-                title.setScaleY(2);
-                title.setScaleX(2);
-                title.setAlignment(Pos.CENTER);
-                FlowPane flowPane = new FlowPane(title);
-                flowPane.setPadding(new Insets(10));
-                flowPane.setAlignment(Pos.CENTER);
-                gridPane.add(flowPane, 0, 0, 2, 1);
+                javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane();
+                scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-                VBox normalProperties = new VBox(new Label("General"));
-                normalProperties.setSpacing(20);
-                normalProperties.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
-                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
-                VBox dateProperties = new VBox(new Label("Date"));
-                dateProperties.setSpacing(20);
-                dateProperties.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
-                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
-                VBox durationProperties = new VBox(new Label("Duration"));
-                durationProperties.setSpacing(20);
-                durationProperties.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
-                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+                GridPane mainPane = initConfigPanels(stage, properties);
+                //mainPane.setGridLinesVisible(true);
 
-                for(String property : properties.stringPropertyNames()) {
-                    HBox hBox = new HBox();
-                    hBox.setSpacing(10);
-                    hBox.setAlignment(Pos.CENTER_LEFT);
-                    Label label = property.contains(".") ? new Label(property.split("\\.")[1].substring(0,1).toUpperCase() + property.split("\\.")[1].substring(1)) : new Label(property.substring(0,1).toUpperCase() + property.substring(1));
-                    label.setAlignment(Pos.CENTER_RIGHT);
-                    label.setPrefWidth(100);
-                    JFXTextField textField = new JFXTextField(properties.getProperty(property));
-                    textField.setPrefWidth(45);
-                    hBox.getChildren().addAll(label, textField);
-                    if(property.startsWith("date")) {
-                        dateProperties.getChildren().add(hBox);
-                    } else if(property.startsWith("duration")) {
-                        durationProperties.getChildren().add(hBox);
-                    } else {
-                        normalProperties.getChildren().add(hBox);
-                    }
-                }
+                scrollPane.setContent(mainPane);
+                scrollPane.setOpaqueInsets(new Insets(0));
 
-                gridPane.add(normalProperties, 0, 1);
-                gridPane.add(durationProperties, 0, 2);
-                gridPane.add(dateProperties, 1, 1, 1, 2);
-
-                JFXButton saveButton = new JFXButton("SAVE");
-                saveButton.setStyle("-fx-background-color: rgba(200,100,100,0.5);" + "-fx-padding: 10;" + "-fx-border-style: solid inside;"
-                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
-                saveButton.setOnMouseClicked((clickSave) -> {
-                    Thread thread = new Thread("saveButton Thread") {
-                        public void run() {
-                            String propName = null;
-                            String propValue = null;
-                            for(Node node : normalProperties.getChildren()) {
-                                if(node.getClass().equals(HBox.class)) {
-                                    for(Node n : ((HBox) node).getChildren()) {
-                                        System.out.println(n);
-                                        if(n.getClass().equals(JFXTextField.class)) {
-                                            JFXTextField jfxTextField = (JFXTextField) n;
-                                            propValue = jfxTextField.getText();
-                                        } else if(n.getClass().equals(Label.class)) {
-                                            Label label = (Label) n;
-                                            propName = label.getText();
-                                        }
-                                    }
-                                    properties.setProperty(propName.toLowerCase(), propValue);
-                                }
-                            }
-                            for(Node node : durationProperties.getChildren()) {
-                                if(node.getClass().equals(HBox.class)) {
-                                    for(Node n : ((HBox) node).getChildren()) {
-                                        if(n.getClass().equals(JFXTextField.class)) {
-                                            JFXTextField jfxTextField = (JFXTextField) n;
-                                            propValue = jfxTextField.getText();
-                                        } else if(n.getClass().equals(Label.class)) {
-                                            Label label = (Label) n;
-                                            propName = label.getText();
-                                        }
-                                    }
-                                    properties.setProperty("duration." + propName.toLowerCase(), propValue);
-                                }
-                            }
-                            for(Node node : dateProperties.getChildren()) {
-                                if(node.getClass().equals(HBox.class)) {
-                                    for(Node n : ((HBox) node).getChildren()) {
-                                        if(n.getClass().equals(JFXTextField.class)) {
-                                            JFXTextField jfxTextField = (JFXTextField) n;
-                                            propValue = jfxTextField.getText();
-                                        } else if(n.getClass().equals(Label.class)) {
-                                            Label label = (Label) n;
-                                            propName = label.getText();
-                                        }
-                                    }
-                                    properties.setProperty("date." + propName.toLowerCase(), propValue);
-                                }
-                            }
-                            // save properties from textfields.
-                            Configuration.saveDateRules(properties);
-                        }
-                    };
-                    thread.start();
-                });
-                JFXButton closeButton = new JFXButton("CLOSE");
-                closeButton.setStyle("-fx-background-color: rgba(200,100,100,0.5);" + "-fx-padding: 10;" + "-fx-border-style: solid inside;"
-                        + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
-                closeButton.setOnMouseClicked((clickClose) -> {
-                    stage.close();
-                });
-
-                HBox buttonBox = new HBox();
-                buttonBox.setSpacing(10);
-                buttonBox.setAlignment(Pos.BOTTOM_RIGHT);
-                buttonBox.getChildren().addAll(saveButton, closeButton);
-                gridPane.add(buttonBox, 1, 3);
                 stage.setTitle("Configuration: daterule.xml");
-                stage.setScene(new Scene(gridPane, 390, 610));
+                stage.setScene(new Scene(scrollPane, 450, 720));
                 stage.setResizable(false);
                 stage.show();
             } catch (Exception e) {
@@ -311,6 +208,183 @@ public class MenuBox extends HBox {
         this.setPrefSize(1200, 50);
         //this.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0), CornerRadii.EMPTY, Insets.EMPTY)));
         this.getChildren().addAll(reloadButton, requestDocumentButton, requestListButton, convertButton, heideltimeButton, csvButton, configurationButton, githubButton);
+    }
+
+    private GridPane initConfigPanels(Stage stage, Properties properties) {
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(10));
+        gridPane.setHgap(5);
+        gridPane.setVgap(5);
+        gridPane.setMinWidth(430);
+        gridPane.setPrefWidth(430);
+        gridPane.setMaxWidth(430);
+
+        FlowPane titlePane = createConfigTitlePane("DateRule Configuration", 2, 2, Pos.CENTER, 430);
+        gridPane.add(titlePane, 0, 0);
+
+        gridPane.add(generalConfigPane(stage, properties), 0, 1);
+        int l = 2;
+        for(int i = 0; i < DateRule.getRuleAmount(); i++) {
+            gridPane.add(createConfigPane(i, false, properties), 0, l);
+            l++;
+        }
+        gridPane.add(createConfigPane(DateRule.getRuleAmount(), true, properties), 0, l);
+
+        return gridPane;
+    }
+
+    private GridPane generalConfigPane(Stage stage, Properties properties) {
+        GridPane gridPane = new GridPane();
+        gridPane.setId("generalConfig");
+        gridPane.setPadding(new Insets(10));
+        gridPane.setHgap(5);
+        gridPane.setVgap(5);
+
+        gridPane.add(createConfigTitlePane("General", 1.25, 1.25, Pos.TOP_LEFT, 410), 0, 0, 4, 1);
+        int i = 1;
+        for(String property : properties.stringPropertyNames()) {
+            if(!property.startsWith("duration") && !property.startsWith("date")) {
+                Label label = property.contains(".") ? new Label(property.split("\\.")[1].substring(0,1).toUpperCase() + property.split("\\.")[1].substring(1)) : new Label(property.substring(0,1).toUpperCase() + property.substring(1));
+                label.setAlignment(Pos.CENTER_RIGHT);
+                label.setPrefWidth(100);
+                JFXTextField textField = new JFXTextField(properties.getProperty(property));
+                textField.setId(label.getText().toLowerCase());
+                textField.setPrefWidth(45);
+                gridPane.add(label, 0, i);
+                gridPane.add(textField, 1, i);
+                i++;
+            }
+        }
+
+        JFXButton saveButton = new JFXButton("SAVE");
+        saveButton.setStyle("-fx-pref-width: 100px;" + "-fx-background-color: rgba(200,100,100,0.5);" + "-fx-padding: 10;" + "-fx-border-style: solid inside;"
+                + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+        saveButton.setOnMouseClicked((clickClose) -> {
+
+            Thread thread = new Thread("saveButton Thread") {
+                public void run() {
+                    Properties props = new Properties();
+                    ArrayList<HashMap<String, String>> hashMaps = new ArrayList<>();
+                    for(Node node : gridPane.getParent().getChildrenUnmodifiable()) {
+                        if(node.getId() != null) {
+
+                            if(node.getId().equals("generalConfig")) {
+                                for(Node innerNode : ((GridPane) node).getChildrenUnmodifiable()) {
+                                    if(innerNode.getClass().equals(JFXTextField.class)) {
+                                        props.setProperty(innerNode.getId(), ((JFXTextField) innerNode).getText());
+                                    }
+                                }
+                            }
+
+                            if(node.getId().startsWith("config")) {
+                                HashMap<String, String> propertyMap = new HashMap<>();
+
+                                for(Node innerNode : ((GridPane) node).getChildrenUnmodifiable()) {
+                                    if(innerNode.getClass().equals(JFXTextField.class)) {
+                                        propertyMap.put(innerNode.getId(), ((JFXTextField) innerNode).getText());
+                                    }
+                                }
+                                hashMaps.add(propertyMap);
+                            }
+                        }
+                    }
+                    HashMap<String, String> hMap = new HashMap<>();
+                    int amount = 0;
+                    for(HashMap<String, String> map : hashMaps) {
+                        boolean empty = false;
+                        for(String val : map.values()) if(val.equals("")) empty = true;
+                        if(!empty) {
+                            amount++;
+                            for(Map.Entry<String, String> entry : map.entrySet()) {
+                                if(!hMap.containsKey(entry.getKey())) hMap.put(entry.getKey(), entry.getValue());
+                                else hMap.put(entry.getKey(), hMap.get(entry.getKey()) + ";" + entry.getValue());
+                            }
+                        }
+                    }
+                    properties.setProperty("ruleamount", String.valueOf(amount));
+                    for(Map.Entry<String, String> entry : hMap.entrySet()) {
+                        properties.setProperty(entry.getKey(), entry.getValue());
+                    }
+                    Configuration.saveDateRules(properties);
+                }
+            };
+            thread.start();
+
+            // save all textfields über die verschiedenen gridpanes loopen, danach die die grids wo date hat mit date verbinden und duration mit duration dann abspeichern und fertig
+            stage.close();
+        });
+        JFXButton closeButton = new JFXButton("CLOSE");
+        closeButton.setStyle("-fx-pref-width: 100px;" + "-fx-background-color: rgba(200,100,100,0.5);" + "-fx-padding: 10;" + "-fx-border-style: solid inside;"
+                + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+        closeButton.setOnMouseClicked((clickClose) -> {
+            stage.close();
+        });
+
+        gridPane.add(saveButton, 2, 1);
+        gridPane.add(closeButton, 2, 2);
+
+        gridPane.setStyle("-fx-border-style: solid inside;" + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+
+        return gridPane;
+    }
+
+    private GridPane createConfigPane(int number, boolean empty, Properties properties) {
+        GridPane gridPane = new GridPane();
+        gridPane.setId("config" + (number+1));
+        gridPane.setPadding(new Insets(10));
+        gridPane.setHgap(5);
+        gridPane.setVgap(5);
+
+        gridPane.add(createConfigTitlePane("Config " + (number+1), 1.5, 1.5, Pos.TOP_LEFT, 390), 0, 0, 4, 1);
+
+        int i = 2;
+        int k = 2;
+        gridPane.add(createConfigTitlePane("Date Rules", 1.25, 1.25, Pos.TOP_LEFT, 175), 0, 1, 2, 1);
+        gridPane.add(createConfigTitlePane("Duration Rules", 1.25, 1.25, Pos.TOP_LEFT, 175), 2, 1, 2, 1);
+        for(String property : properties.stringPropertyNames()) {
+            if(property.startsWith("duration") || property.startsWith("date")) {
+                Label label = property.contains(".") ? new Label(property.split("\\.")[1].substring(0, 1).toUpperCase() + property.split("\\.")[1].substring(1)) : new Label(property.substring(0, 1).toUpperCase() + property.substring(1));
+                label.setAlignment(Pos.CENTER_RIGHT);
+                label.setPrefWidth(100);
+                JFXTextField textField;
+                if(!empty) {
+                    textField = new JFXTextField(properties.getProperty(property).split(";")[number]);
+                } else {
+                    textField = new JFXTextField("");
+                }
+                textField.setPrefWidth(45);
+                if (property.startsWith("duration")) {
+                    textField.setId("duration." + label.getText().toLowerCase());
+                    gridPane.add(label, 2, i);
+                    gridPane.add(textField, 3, i);
+                    i++;
+                } else if (property.startsWith("date")) {
+                    textField.setId("date." + label.getText().toLowerCase());
+                    gridPane.add(label, 0, k);
+                    gridPane.add(textField, 1, k);
+                    k++;
+                }
+            }
+        }
+        gridPane.setStyle("-fx-border-style: solid inside;" + "-fx-border-width: 2;" + "-fx-border-color: #C86464;");
+
+        return gridPane;
+    }
+
+    private FlowPane createConfigTitlePane(String name, double scaleX, double scaleY, Pos pos, double width) {
+        Label title = new Label(name);
+        title.setScaleX(scaleX);
+        title.setScaleY(scaleY);
+
+        FlowPane flowPane = new FlowPane(title);
+        flowPane.setPadding(new Insets(10));
+        flowPane.setAlignment(pos);
+        flowPane.setMinWidth(width);
+        flowPane.setPrefWidth(width);
+        flowPane.setMaxWidth(width);
+        //flowPane.setStyle("-fx-background-color: rgba(1,100,100,0.5);");
+
+        return flowPane;
     }
 
     static void setCurrentTab(String text) {

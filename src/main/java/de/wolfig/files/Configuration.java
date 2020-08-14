@@ -75,15 +75,17 @@ public class Configuration {
 
     private static void setDateRule(Properties properties) {
         DateRule.set(properties.getProperty("linesbasedon"),
+                properties.getProperty("ruleamount"),
                 properties.getProperty("date.past"),
                 properties.getProperty("date.future"),
                 properties.getProperty("date.week"),
                 properties.getProperty("date.month"),
                 properties.getProperty("date.year"),
                 properties.getProperty("date.quarter"),
-                properties.getProperty("date.halfYear"),
+                properties.getProperty("date.halfyear"),
                 properties.getProperty("date.weekend"),
                 properties.getProperty("date.season"),
+                properties.getProperty("date.decade"),
                 properties.getProperty("duration.days"),
                 properties.getProperty("duration.weeks"),
                 properties.getProperty("duration.months"),
