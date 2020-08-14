@@ -287,7 +287,10 @@ public class DateRule {
                     YearMonth yearMonth = null;
                     switch (dateSeason.rules[number]) {
                         case "first":
-                            yearMonth = YearMonth.of(Integer.parseInt(dat[0]), month - 1);
+                            if(dat[1].equals("WI")) {
+                                yearMonth = YearMonth.of(Integer.parseInt(dat[0]), 12);
+                                dat[0] = String.valueOf(Integer.parseInt(dat[0])-1);
+                            } else yearMonth = YearMonth.of(Integer.parseInt(dat[0]), month - 1);
                             day = 1;
                             break;
                         case "mid":
