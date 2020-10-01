@@ -56,6 +56,8 @@ public class Worker {
     private static Reader reader = null;
     private static Writer writer = null;
 
+    private static final ArrayList<String> stringsToIgnore = new ArrayList<String>(Arrays.asList("research division", "inc", "inc.", "llc", "llc.", "ltd", "ltd.", "corp", "corp."));
+
 //    public Worker() {
 //        requester = new Requester(Configuration.getAccessToken());
 //        reader = new Reader();
@@ -208,13 +210,19 @@ public class Worker {
     }
 
     public static void createCSV(String heidelTimeFile) {
+        int year = Integer.parseInt(heidelTimeFile.substring(14, 18));
+        String quarter = heidelTimeFile.substring(11, 13);
+        boolean passedPresentation = false;
+        String presOrQA = "P";
+        String ceo = "";
+        ArrayList<ImpPerson> persons = new ArrayList<>();
         String publication = "";
         int i = 1;
         int lineNumber = (DateRule.getLinesBasedOn().equals("ht")) ? 1 : -2;
         writer.changeWriterSettings(heidelTimeFile.replace("xml", "csv").replaceFirst("ht", "csv"), false);
         StringBuilder stringBuilder = new StringBuilder();
         for(int number = 0; number < DateRule.getRuleAmount(); number++) stringBuilder.append("Actual Date ").append(number).append(";").append("Distance ").append(number).append(";");
-        writer.writeToFile("Number;Person;Type;TIMEX3;Publication;Date;" + stringBuilder.toString() + ";Line " + DateRule.getLinesBasedOn() + "\n");
+        writer.writeToFile("Number;Person;Name;Position;CEO;Type;TIMEX3;Publication;Date;" + stringBuilder.toString() + ";Q&A;Company;Year;Quarter;Line " + DateRule.getLinesBasedOn() + "\n");
         writer.changeWriterAppend(true);
         for(String line : reader.readFileLineByLine(new File(heidelTimeFile))) {
 
@@ -231,12 +239,52 @@ public class Worker {
                 }
                 line = stringBuffer.toString();
             }
+            if(year >= 2008) {
+                if(!passedPresentation && line.equalsIgnoreCase("questions and answers")) {
+                    passedPresentation = true;
+                    presOrQA = "Q";
+                }
+            }
 
             if(line.startsWith("$Date")) publication = line.substring(7,17);
             if(line.startsWith("<PERSON>")) {
                 Matcher matcher = patternTimex3.matcher(line);
                 String person = line.substring(line.indexOf("<PERSON>")+8,line.indexOf("</PERSON>"));
-                String jobTitle = "";
+                String[] personArr = person.split(", ");
+                String name = personArr[0];
+                String position = "";
+                String company = "";
+
+                ImpPerson impPerson = new ImpPerson("OPERATOR", "", "", "");
+                if(persons.stream().noneMatch(p -> p.getName().equalsIgnoreCase(name))) {
+                    if(personArr.length >= 3) {
+                        int length = personArr.length-1;
+                        String lastIndex = personArr[length];
+                        while(stringsToIgnore.contains(lastIndex.toLowerCase())) {
+                            length--;
+                            lastIndex = personArr[length];
+                        }
+                        company = lastIndex;
+                        for(int l = 1; l < length; l++) position = position + "," + personArr[l];
+
+                        Matcher matchCEO = Pattern.compile("(C[A-Z]{2} )").matcher(position);
+                        while(matchCEO.find()) ceo = matchCEO.group();
+                        if(position.contains("ANALYST") || position.contains("MD")) {
+                            ceo = "ANALYST";
+                            if(!passedPresentation) {
+                                passedPresentation = true;
+                                presOrQA = "Q";
+                            }
+                        }
+
+                        impPerson = new ImpPerson(name, position.replaceFirst(",", ""), company, ceo);
+                        persons.add(impPerson);
+                    }
+                } else {
+                    impPerson = persons.stream().filter(p -> p.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+                }
+
+
                 while(matcher.find()) {
                     String type = "";
                     Matcher matcher1 = patternTimex3type.matcher(matcher.group());
@@ -267,7 +315,7 @@ public class Worker {
                     }
                     timex3mod = timex3mod.equals("START") || timex3mod.equals("MID") || timex3mod.equals("END") ? " (" + timex3mod + ")" : "";
 
-                    writer.writeToFile(i + ";" + person + ";" + type + ";" + timex3msg + ";" + publication + ";" + date + timex3mod + ";" + stringBuilder.toString() + ";" + lineNumber + "\n");
+                    writer.writeToFile(i + ";" + person + ";" + impPerson.getName() + ";" + impPerson.getPosition() + ";" + impPerson.getCeo() + ";" + type + ";" + timex3msg + ";" + publication + ";" + date + timex3mod + ";" + stringBuilder.toString() + ";" + presOrQA +";" + impPerson.getCompany() + ";" + year + ";" + quarter + ";" + lineNumber + "\n");
                     i++;
                 }
             }
