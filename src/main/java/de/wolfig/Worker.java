@@ -221,7 +221,7 @@ public class Worker {
         writer.changeWriterSettings(heidelTimeFile.replace("xml", "csv").replaceFirst("ht", "csv"), false);
         StringBuilder stringBuilder = new StringBuilder();
         for(int number = 0; number < DateRule.getRuleAmount(); number++) stringBuilder.append("Actual Date ").append(number).append(";").append("Distance ").append(number).append(";");
-        writer.writeToFile("Number;Person;Name;Position;CEO;Type;TIMEX3;Publication;Date;" + stringBuilder.toString() + ";Q&A;Company;Year;Quarter;Line " + DateRule.getLinesBasedOn() + "\n");
+        writer.writeToFile("Number;Person;Name;Position;CEO;Company;Year;Quarter;Q&A;Type;TIMEX3;Publication;Date;" + stringBuilder.toString() + ";Line " + DateRule.getLinesBasedOn() + "\n");
         writer.changeWriterAppend(true);
         for(String line : reader.readFileLineByLine(new File(heidelTimeFile))) {
 
@@ -264,7 +264,7 @@ public class Worker {
                 String company = "";
                 String ceo = "";
 
-                ImpPerson impPerson = new ImpPerson("OPERATOR", "", "", "");
+                ImpPerson impPerson = new ImpPerson("", "", "", "OPERATOR");
                 if(persons.stream().noneMatch(p -> p.getName().equalsIgnoreCase(name))) {
                     if(personArr.length >= 3) {
                         int length = personArr.length-1;
@@ -276,18 +276,28 @@ public class Worker {
                         company = lastIndex;
                         for(int l = 1; l < length; l++) position = position + ", " + personArr[l];
 
-                        Matcher matchCEO = Pattern.compile("([^A-Z])(C[A-Z]{2})([^A-Z]|$)").matcher(position);
+                        Matcher matchCEO = Pattern.compile("(C[A-Z]O)").matcher(position);
                         while(matchCEO.find()) {
-                            if(ceo.equals("")) ceo = matchCEO.group(2);
+                            if(ceo.equals("")) ceo = matchCEO.group(1);
+                            System.out.println("### " + ceo);
                         }
-                        if(position.contains("ANALYST") || position.contains("MD")) {
+                        matchCEO = Pattern.compile("((C)[A-Z]* ([A-Z])[A-Z]* (O)[A-Z]*)").matcher(position);
+                        while(matchCEO.find()) {
+                            if(ceo.equals("")) ceo = matchCEO.group(2) + matchCEO.group(3) + matchCEO.group(4);
+                            System.out.println(heidelTimeFile);
+                            System.out.println("*** " + ceo);
+                        }
+                        if(ceo.equals("") && (position.contains("IR") || position.contains("INVESTOR RELATION"))) ceo = "IR";
+                        if(ceo.equals("") && (position.contains("ANALYST") || position.contains("MD") || position.contains("PORTFOLIO MANAGER") || position.contains("CFA") || position.contains("CHIEF FINANCIAL ANALYST"))) {
                             ceo = "ANALYST";
+                            System.out.println("--- " + ceo);
                             if(!passedPresentation) {
                                 passedPresentation = true;
                                 presOrQA = "Q";
                             }
                         }
-                        System.out.println(ceo);
+                        if(ceo.equals("") && position.contains("SVP")) ceo = "SVP";
+                        if(ceo.equals("") && position.contains("PRESIDENT")) ceo = "PRESIDENT";
 
                         impPerson = new ImpPerson(name, position.replaceFirst(", ", ""), company, ceo);
                         persons.add(impPerson);
@@ -327,7 +337,7 @@ public class Worker {
                     }
                     timex3mod = timex3mod.equals("START") || timex3mod.equals("MID") || timex3mod.equals("END") ? " (" + timex3mod + ")" : "";
 
-                    writer.writeToFile(i + ";" + person + ";" + impPerson.getName() + ";" + impPerson.getPosition() + ";" + impPerson.getCeo() + ";" + type + ";" + timex3msg + ";" + publication + ";" + date + timex3mod + ";" + stringBuilder.toString() + ";" + presOrQA +";" + impPerson.getCompany() + ";" + year + ";" + quarter + ";" + lineNumber + "\n");
+                    writer.writeToFile(i + ";" + person + ";" + impPerson.getName() + ";" + impPerson.getPosition() + ";" + impPerson.getCeo() + ";" + impPerson.getCompany() + ";" + year + ";" + quarter + ";" + presOrQA + ";" + type + ";" + timex3msg + ";" + publication + ";" + date + timex3mod + ";" + stringBuilder.toString() + ";" + lineNumber + "\n");
                     i++;
                 }
             }
