@@ -210,11 +210,10 @@ public class Worker {
     }
 
     public static void createCSV(String heidelTimeFile) {
-        int year = Integer.parseInt(heidelTimeFile.substring(14, 18));
-        String quarter = heidelTimeFile.substring(11, 13);
+        int year = 0;
+        String quarter = "Q1";
         boolean passedPresentation = false;
         String presOrQA = "P";
-        String ceo = "";
         ArrayList<ImpPerson> persons = new ArrayList<>();
         String publication = "";
         int i = 1;
@@ -225,6 +224,15 @@ public class Worker {
         writer.writeToFile("Number;Person;Name;Position;CEO;Type;TIMEX3;Publication;Date;" + stringBuilder.toString() + ";Q&A;Company;Year;Quarter;Line " + DateRule.getLinesBasedOn() + "\n");
         writer.changeWriterAppend(true);
         for(String line : reader.readFileLineByLine(new File(heidelTimeFile))) {
+
+            if(line.startsWith("$Title: ")) {
+                if(year == 0 && quarter.equals("Q1")) {
+                    Matcher matchYear = Pattern.compile("([0-9]{4})").matcher(line);
+                    while(matchYear.find()) year = Integer.parseInt(matchYear.group());
+                    Matcher matchQuarter = Pattern.compile("(Q[1-4])").matcher(line);
+                    while(matchQuarter.find()) quarter = matchQuarter.group();
+                }
+            }
 
             for(int l = 0; l < 2; l++) {
                 StringBuffer stringBuffer = new StringBuffer(line.length());
@@ -254,6 +262,7 @@ public class Worker {
                 String name = personArr[0];
                 String position = "";
                 String company = "";
+                String ceo = "";
 
                 ImpPerson impPerson = new ImpPerson("OPERATOR", "", "", "");
                 if(persons.stream().noneMatch(p -> p.getName().equalsIgnoreCase(name))) {
@@ -265,10 +274,12 @@ public class Worker {
                             lastIndex = personArr[length];
                         }
                         company = lastIndex;
-                        for(int l = 1; l < length; l++) position = position + "," + personArr[l];
+                        for(int l = 1; l < length; l++) position = position + ", " + personArr[l];
 
-                        Matcher matchCEO = Pattern.compile("(C[A-Z]{2} )").matcher(position);
-                        while(matchCEO.find()) ceo = matchCEO.group();
+                        Matcher matchCEO = Pattern.compile("([^A-Z])(C[A-Z]{2})([^A-Z]|$)").matcher(position);
+                        while(matchCEO.find()) {
+                            if(ceo.equals("")) ceo = matchCEO.group(2);
+                        }
                         if(position.contains("ANALYST") || position.contains("MD")) {
                             ceo = "ANALYST";
                             if(!passedPresentation) {
@@ -276,8 +287,9 @@ public class Worker {
                                 presOrQA = "Q";
                             }
                         }
+                        System.out.println(ceo);
 
-                        impPerson = new ImpPerson(name, position.replaceFirst(",", ""), company, ceo);
+                        impPerson = new ImpPerson(name, position.replaceFirst(", ", ""), company, ceo);
                         persons.add(impPerson);
                     }
                 } else {
