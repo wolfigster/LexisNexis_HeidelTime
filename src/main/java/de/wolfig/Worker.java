@@ -276,16 +276,18 @@ public class Worker {
                         company = lastIndex;
                         for(int l = 1; l < length; l++) position = position + ", " + personArr[l];
 
-                        Matcher matchCEO = Pattern.compile("[ ,](C[A-Z]O)[ ,]").matcher(position);
+                        Matcher matchCEO = Pattern.compile("[ ,](C[A-Z]O)[ ,]|[ ,](C[A-Z]O)\\Z|\\G(C[A-Z]O)[ ,]|\\G(C[A-Z]O)\\Z").matcher(position);
                         while(matchCEO.find()) {
-                            if(ceo.equals("")) ceo = matchCEO.group(1);
-                            System.out.println("### " + ceo);
+                            if(ceo.equals("")) {
+                                for(int gr = 0; gr < matchCEO.groupCount(); gr++) {
+                                    if(matchCEO.group(gr) != null && ceo.equals("")) ceo = matchCEO.group(gr);
+                                }
+                            }
+                            ceo = ceo.replaceAll("[ ,]", "");
                         }
                         matchCEO = Pattern.compile("((C)HIEF ([A-Z])[A-Z]* (O)FFICER)").matcher(position);
                         while(matchCEO.find()) {
                             if(ceo.equals("")) ceo = matchCEO.group(2) + matchCEO.group(3) + matchCEO.group(4);
-                            System.out.println(heidelTimeFile);
-                            System.out.println("*** " + ceo);
                         }
                         if(ceo.equals("")) {
                             // Match IR
@@ -299,7 +301,6 @@ public class Worker {
                             Matcher matchAnalyst = Pattern.compile("ANALYST|MD|PORTFOLIO MANAGER|CFA|CHIEF FINANCIAL ANALYST|ANALSYT|ANALYLST|ANALYSST|ANAYST|ANALAYST|ANLYST").matcher(position);
                             while(matchAnalyst.find()) {
                                 ceo = "ANALYST";
-                                System.out.println("--- " + ceo);
                                 if(!passedPresentation) {
                                     passedPresentation = true;
                                     presOrQA = "Q";
