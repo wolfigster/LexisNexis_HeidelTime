@@ -56,7 +56,7 @@ public class Worker {
     private static Reader reader = null;
     private static Writer writer = null;
 
-    private static final ArrayList<String> stringsToIgnore = new ArrayList<String>(Arrays.asList("research division", "inc", "inc.", "llc", "llc.", "ltd", "ltd.", "corp", "corp."));
+    private static final ArrayList<String> stringsToIgnore = new ArrayList<String>(Arrays.asList("research division", "inc", "inc.", "llc", "llc.", "ltd", "ltd.", "corp", "corp.", "incorporated"));
 
 //    public Worker() {
 //        requester = new Requester(Configuration.getAccessToken());
@@ -264,7 +264,7 @@ public class Worker {
                 String company = "";
                 String ceo = "";
 
-                ImpPerson impPerson = new ImpPerson("", "", "", "OPERATOR");
+                ImpPerson impPerson = new ImpPerson("", "", "", "");
                 if(persons.stream().noneMatch(p -> p.getName().equalsIgnoreCase(name))) {
                     if(personArr.length >= 3) {
                         int length = personArr.length-1;
@@ -276,31 +276,60 @@ public class Worker {
                         company = lastIndex;
                         for(int l = 1; l < length; l++) position = position + ", " + personArr[l];
 
-                        Matcher matchCEO = Pattern.compile("(C[A-Z]O)").matcher(position);
+                        Matcher matchCEO = Pattern.compile("[ ,](C[A-Z]O)[ ,]").matcher(position);
                         while(matchCEO.find()) {
                             if(ceo.equals("")) ceo = matchCEO.group(1);
                             System.out.println("### " + ceo);
                         }
-                        matchCEO = Pattern.compile("((C)[A-Z]* ([A-Z])[A-Z]* (O)[A-Z]*)").matcher(position);
+                        matchCEO = Pattern.compile("((C)HIEF ([A-Z])[A-Z]* (O)FFICER)").matcher(position);
                         while(matchCEO.find()) {
                             if(ceo.equals("")) ceo = matchCEO.group(2) + matchCEO.group(3) + matchCEO.group(4);
                             System.out.println(heidelTimeFile);
                             System.out.println("*** " + ceo);
                         }
-                        if(ceo.equals("") && (position.contains("IR") || position.contains("INVESTOR RELATION"))) ceo = "IR";
-                        if(ceo.equals("") && (position.contains("ANALYST") || position.contains("MD") || position.contains("PORTFOLIO MANAGER") || position.contains("CFA") || position.contains("CHIEF FINANCIAL ANALYST"))) {
-                            ceo = "ANALYST";
-                            System.out.println("--- " + ceo);
-                            if(!passedPresentation) {
-                                passedPresentation = true;
-                                presOrQA = "Q";
+                        if(ceo.equals("")) {
+                            // Match IR
+                            Matcher matchIR = Pattern.compile("[ ,]IR[ ,]|[ ,]IR\\Z|\\GIR[ ,]|\\GIR\\Z|[ ,]INVESTOR RELATION[ ,]|[ ,]INVESTOR RELATION\\Z|\\GINVESTOR RELATION[ ,]|\\GINVESTOR RELATION\\Z|[ ,]INVESTOR RELATIONS[ ,]|[ ,]INVESTOR RELATIONS\\Z|\\GINVESTOR RELATIONS[ ,]|\\GINVESTOR RELATIONS\\Z").matcher(position);
+                            while (matchIR.find()) {
+                                ceo = "IR";
                             }
                         }
-                        if(ceo.equals("") && position.contains("SVP")) ceo = "SVP";
-                        if(ceo.equals("") && position.contains("PRESIDENT")) ceo = "PRESIDENT";
+                        if(ceo.equals("")) {
+                            // Match Analyst etc.
+                            Matcher matchAnalyst = Pattern.compile("ANALYST|MD|PORTFOLIO MANAGER|CFA|CHIEF FINANCIAL ANALYST|ANALSYT|ANALYLST|ANALYSST|ANAYST|ANALAYST|ANLYST").matcher(position);
+                            while(matchAnalyst.find()) {
+                                ceo = "ANALYST";
+                                System.out.println("--- " + ceo);
+                                if(!passedPresentation) {
+                                    passedPresentation = true;
+                                    presOrQA = "Q";
+                                }
+                            }
+                        }
+                        if(ceo.equals("")) {
+                            // Match SVP, PRESIDENT, EVP and VP
+                            Matcher matchSVP = Pattern.compile("[ ,]SVP[ ,]|[ ,]SVP\\Z|\\GSVP[ ,]|\\GSVP\\Z").matcher(position);
+                            while(matchSVP.find()) {
+                                ceo = "SVP";
+                            }
+                            Matcher matchPRESIDENT = Pattern.compile("[ ,]PRESIDENT[ ,]|[ ,]PRESIDENT\\Z|\\GPRESIDENT[ ,]|\\GPRESIDENT\\Z").matcher(position);
+                            while(matchPRESIDENT.find()) {
+                                ceo = "PRESIDENT";
+                            }
+                            Matcher matchEVP = Pattern.compile("[ ,]EVP[ ,]|[ ,]EVP\\Z|\\GEVP[ ,]|\\GEVP\\Z").matcher(position);
+                            while(matchEVP.find()) {
+                                ceo = "EVP";
+                            }
+                            Matcher matchVP = Pattern.compile("[ ,]VP[ ,]|[ ,]VP\\Z|\\GVP[ ,]|\\GVP\\Z").matcher(position);
+                            while(matchVP.find()) {
+                                ceo = "VP";
+                            }
+                        }
 
                         impPerson = new ImpPerson(name, position.replaceFirst(", ", ""), company, ceo);
                         persons.add(impPerson);
+                    } else if(personArr.length == 1 && person.equals("OPERATOR")) {
+                        impPerson = new ImpPerson("", "", "", "OPERATOR");
                     }
                 } else {
                     impPerson = persons.stream().filter(p -> p.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
