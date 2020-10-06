@@ -4,13 +4,13 @@ public class ImpPerson {
     private final String name;
     private final String position;
     private final String company;
-    private final String ceo;
+    private final String role;
 
-    public ImpPerson(String _name, String _position, String _company, String _ceo) {
+    public ImpPerson(String _name, String _position, String _company, String _role) {
         this.name = _name;
         this.position = _position;
         this.company = _company;
-        this.ceo = _ceo;
+        this.role = _role;
     }
 
     public String getName() {
@@ -25,7 +25,7 @@ public class ImpPerson {
         return company;
     }
 
-    public String getCeo() {
-        return ceo;
+    public String getRole() {
+        return role;
     }
 }
