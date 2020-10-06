@@ -291,32 +291,33 @@ public class Worker {
                         }
 
 
-                        Matcher matchCEOE = Pattern.compile("[ ,]CEO ELECT[ ,]|[ ,]CEO ELECT\\Z|\\GCEO ELECT[ ,]|\\GCEO ELECT\\Z").matcher(position);
+                        Matcher matchCEOE = Pattern.compile(createRegex("CEO ELECT")).matcher(position);
                         while(matchCEOE.find() && role.equals("")) {
                             role = "CEO ELECT";
                         }
-                        Matcher matchCOP = Pattern.compile("[ ,]CO-PRESIDENT[ ,]|[ ,]CO-PRESIDENT\\Z|\\GCO-PRESIDENT[ ,]|\\GCO-PRESIDENT\\Z").matcher(position);
+                        Matcher matchCOP = Pattern.compile(createRegex("CO-PRESIDENT")).matcher(position);
                         while(matchCOP.find() && role.equals("")) {
                             role = "CO-PRESIDENT";
                         }
-                        Matcher matchCON = Pattern.compile("[ ,]CONTROLLER[ ,]|[ ,]CONTROLLER\\Z|\\GCONTROLLER[ ,]|\\GCONTROLLER\\Z").matcher(position);
+                        Matcher matchCON = Pattern.compile(createRegex("CONTROLLER")).matcher(position);
                         while(matchCON.find() && role.equals("")) {
                             role = "CONTROLLER";
                         }
-                        Matcher matchT = Pattern.compile("[ ,]TREASURER[ ,]|[ ,]TREASURER\\Z|\\GTREASURER[ ,]|\\GTREASURER\\Z").matcher(position);
+                        Matcher matchT = Pattern.compile(createRegex("TREASURER")).matcher(position);
                         while(matchT.find() && role.equals("")) {
                             role = "TREASURER";
                         }
 
                         if(role.equals("")) {
                             // Match IR
-                            String[] regexs = {"[ ,]IR[ ,]|[ ,]IR\\Z|\\GIR[ ,]|\\GIR\\Z",
-                                    "[ ,]INVESTOR RELATION[ ,]|[ ,]INVESTOR RELATION\\Z|\\GINVESTOR RELATION[ ,]|\\GINVESTOR RELATION\\Z",
-                                    "[ ,]INVESTOR RELATIONS[ ,]|[ ,]INVESTOR RELATIONS\\Z|\\GINVESTOR RELATIONS[ ,]|\\GINVESTOR RELATIONS\\Z",
-                                    "[ ,]SHAREHOLDER RELATION[ ,]|[ ,]SHAREHOLDER RELATION\\Z|\\GSHAREHOLDER RELATION[ ,]|\\GSHAREHOLDER RELATION\\Z",
-                                    "[ ,]SHAREHOLDER RELATIONS[ ,]|[ ,]SHAREHOLDER RELATIONS\\Z|\\GSHAREHOLDER RELATIONS[ ,]|\\GSHAREHOLDER RELATIONS\\Z",
-                                    "[ ,]INVESTMENT RELATION[ ,]|[ ,]INVESTMENT RELATION\\Z|\\GINVESTMENT RELATION[ ,]|\\GINVESTMENT RELATION\\Z",
-                                    "[ ,]INVESTMENT RELATIONS[ ,]|[ ,]INVESTMENT RELATIONS\\Z|\\GINVESTMENT RELATIONS[ ,]|\\GINVESTMENT RELATIONS\\Z"};
+                            String[] regexs = {createRegex("IR"),
+                                    createRegex("INVESTOR RELATION"),
+                                    createRegex("INVESTOR RELATIONS"),
+                                    createRegex("SHAREHOLDER RELATION"),
+                                    createRegex("SHAREHOLDER RELATIONS"),
+                                    createRegex("INVESTMENT RELATION"),
+                                    createRegex("INVESTMENT RELATIONS")
+                            };
                             for(String regex : regexs) {
                                 if(role.equals("")) {
                                     Matcher matchIR = Pattern.compile(regex).matcher(position);
@@ -339,31 +340,31 @@ public class Worker {
                         }
                         if(role.equals("")) {
                             // Match EXECUTIVE CHAIRMAN, VICE CHAIRMAN, CHAIRMAN, SVP, PRESIDENT, EVP and VP
-                            Matcher matchEC = Pattern.compile("[ ,]EXECUTIVE CHAIRMAN[ ,]|[ ,]EXECUTIVE CHAIRMAN\\Z|\\GEXECUTIVE CHAIRMAN[ ,]|\\GEXECUTIVE CHAIRMAN\\Z").matcher(position);
+                            Matcher matchEC = Pattern.compile(createRegex("EXECUTIVE CHAIRMAN")).matcher(position);
                             while(matchEC.find() && role.equals("")) {
                                 role = "EXECUTIVE CHAIRMAN";
                             }
-                            Matcher matchVC = Pattern.compile("[ ,]VICE CHAIRMAN[ ,]|[ ,]VICE CHAIRMAN\\Z|\\GVICE CHAIRMAN[ ,]|\\GVICE CHAIRMAN\\Z").matcher(position);
+                            Matcher matchVC = Pattern.compile(createRegex("VICE CHAIRMAN")).matcher(position);
                             while(matchVC.find() && role.equals("")) {
                                 role = "VICE CHAIRMAN";
                             }
-                            Matcher matchC = Pattern.compile("[ ,]CHAIRMAN[ ,]|[ ,]CHAIRMAN\\Z|\\GCHAIRMAN[ ,]|\\GCHAIRMAN\\Z").matcher(position);
+                            Matcher matchC = Pattern.compile(createRegex("CHAIRMAN")).matcher(position);
                             while(matchC.find() && role.equals("")) {
                                 role = "CHAIRMAN";
                             }
-                            Matcher matchSVP = Pattern.compile("[ ,]SVP[ ,]|[ ,]SVP\\Z|\\GSVP[ ,]|\\GSVP\\Z").matcher(position);
+                            Matcher matchSVP = Pattern.compile(createRegex("SVP")).matcher(position);
                             while(matchSVP.find() && role.equals("")) {
                                 role = "SVP";
                             }
-                            Matcher matchP = Pattern.compile("[ ,]PRESIDENT[ ,]|[ ,]PRESIDENT\\Z|\\GPRESIDENT[ ,]|\\GPRESIDENT\\Z").matcher(position);
+                            Matcher matchP = Pattern.compile(createRegex("PRESIDENT")).matcher(position);
                             while(matchP.find() && role.equals("")) {
                                 role = "PRESIDENT";
                             }
-                            Matcher matchEVP = Pattern.compile("[ ,]EVP[ ,]|[ ,]EVP\\Z|\\GEVP[ ,]|\\GEVP\\Z").matcher(position);
+                            Matcher matchEVP = Pattern.compile(createRegex("EVP")).matcher(position);
                             while(matchEVP.find() && role.equals("")) {
                                 role = "EVP";
                             }
-                            Matcher matchVP = Pattern.compile("[ ,]VP[ ,]|[ ,]VP\\Z|\\GVP[ ,]|\\GVP\\Z").matcher(position);
+                            Matcher matchVP = Pattern.compile(createRegex("VP")).matcher(position);
                             while(matchVP.find() && role.equals("")) {
                                 role = "VP";
                             }
@@ -420,6 +421,10 @@ public class Worker {
 
     private static int getRandom4DigitNumber() {
         return new Random().nextInt(8999) + 1000;
+    }
+
+    private static String createRegex(String role) {
+        return "[ ,]" + role + "[ ,]|[ ,]" + role + "\\Z|\\G" + role + "[ ,]|\\G" + role + "\\Z";
     }
 
 
