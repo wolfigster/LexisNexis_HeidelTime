@@ -340,7 +340,7 @@ public class Worker {
                         }
                         if(role.equals("")) {
                             // Match EXECUTIVE CHAIRMAN, VICE CHAIRMAN, CHAIRMAN, SVP, PRESIDENT, EVP and VP
-                            Matcher matchEC = Pattern.compile(createRegex("EXECUTIVE CHAIRMAN")).matcher(position);
+                            Matcher matchEC = Pattern.compile(createRegex("EXECUTIVE CHAIRMAN") + "|" + createRegex("EXEC. CHAIRMAN")).matcher(position);
                             while(matchEC.find() && role.equals("")) {
                                 role = "EXECUTIVE CHAIRMAN";
                             }
